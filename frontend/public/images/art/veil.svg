@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" role="img" aria-label="Abstract editorial pattern 7">
+  <defs>
+    <radialGradient id="g" cx="66%" cy="30%" r="85%"><stop stop-color="#571A37"/><stop offset=".7" stop-color="#190D23"/><stop offset="1" stop-color="#09060F"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="60"/></filter>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="3"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".06"/></feComponentTransfer></filter>
+  </defs>
+  <rect width="1000" height="700" fill="url(#g)"/>
+  <circle cx="600" cy="240" r="212" fill="#C9A7F5" opacity=".16" filter="url(#soft)"/>
+  <g transform="translate(540 350) rotate(58)" fill="none">
+    <ellipse rx="258" ry="116" stroke="#C9A7F5" stroke-opacity=".45"/>
+    <ellipse rx="186" ry="84" stroke="#C9A7F5" stroke-opacity=".26" transform="rotate(62)"/>
+    <ellipse rx="119" ry="54" stroke="#C9A7F5" stroke-opacity=".4" transform="rotate(-48)"/>
+    <circle r="10" fill="#C9A7F5"/>
+  </g>
+  <path d="M0 596c250-80 440 30 660-40s310 10 340 0v180H0Z" fill="#571A37" opacity=".18"/>
+  <rect width="1000" height="700" filter="url(#n)" opacity=".75"/>
+</svg>

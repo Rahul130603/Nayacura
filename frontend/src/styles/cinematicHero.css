@@ -1,0 +1,214 @@
+.cinematic-hero {
+  isolation: isolate;
+  position: relative;
+  min-width: 0;
+  height: clamp(320px, 90vw, 440px);
+}
+
+.cinematic-hero__atmosphere,
+.cinematic-hero__art,
+.cinematic-hero__canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cinematic-hero__atmosphere {
+  inset: -4% -5% -4%;
+  mask-image: radial-gradient(ellipse at center, #000 35%, transparent 75%);
+  background:
+    radial-gradient(ellipse at 70% 46%, rgba(138, 43, 168, 0.22), transparent 58%),
+    radial-gradient(ellipse at 35% 42%, rgba(110, 20, 160, 0.24), transparent 56%),
+    radial-gradient(ellipse at 50% 76%, rgba(219, 39, 119, 0.16), transparent 42%);
+}
+
+.cinematic-hero__art {
+  mask-image: radial-gradient(ellipse 96% 92% at 52% 50%, #000 50%, transparent 98%);
+  -webkit-mask-image: radial-gradient(ellipse 96% 92% at 52% 50%, #000 50%, transparent 98%);
+}
+
+.cinematic-hero__canvas {
+  opacity: 0;
+  transform: scale(0.985);
+  transition: opacity 880ms ease, transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cinematic-hero[data-scene-ready='true'] .cinematic-hero__canvas {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cinematic-hero__fallback {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cinematic-hero__silhouette-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cinematic-hero__silhouette {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  width: min(64%, 480px);
+  transform: translateX(-50%);
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.cinematic-hero__halo {
+  filter: drop-shadow(0 0 8px #f472b6) drop-shadow(0 -2px 18px #a855f7);
+}
+
+.cinematic-hero__card-position {
+  position: absolute;
+  z-index: 2;
+}
+
+.cinematic-hero__card-position--top {
+  right: 0;
+  top: 4%;
+}
+
+.cinematic-hero__card-position--bottom {
+  bottom: 4%;
+  left: 0;
+}
+
+.cinematic-hero__card-float {
+  animation: cinematic-card-float 6s ease-in-out infinite;
+}
+
+.cinematic-hero__card-position--bottom .cinematic-hero__card-float {
+  animation-delay: -3s;
+}
+
+.cinematic-hero__card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  max-width: 100%;
+  padding: 9px 13px;
+  border-radius: 17px;
+  border: 1px solid rgba(244, 114, 182, 0.28);
+  background: rgba(30, 10, 38, 0.95);
+  box-shadow: 0 16px 42px rgba(10, 2, 16, 0.5), inset 0 1px 1px rgba(255, 235, 250, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: border-color 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+}
+
+.cinematic-hero__card:hover {
+  border-color: rgba(244, 114, 182, 0.55);
+  box-shadow: 0 14px 38px rgba(168, 85, 247, 0.28);
+  transform: translateY(-3px);
+}
+
+.cinematic-hero__card-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fbcfe8;
+  background: rgba(244, 114, 182, 0.18);
+  box-shadow: inset 0 0 8px rgba(244, 114, 182, 0.2);
+}
+
+.cinematic-hero__card-title {
+  color: #fff5fc;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.cinematic-hero__card-description {
+  margin-top: 2px;
+  color: #d8b4fe;
+  font-size: 9.5px;
+  line-height: 1.3;
+}
+
+@keyframes cinematic-card-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (min-width: 640px) {
+  .cinematic-hero {
+    height: clamp(480px, 72vw, 640px);
+  }
+
+  .cinematic-hero__card-position--top {
+    right: 3%;
+    top: 11%;
+  }
+
+  .cinematic-hero__card-position--bottom {
+    left: 2%;
+    bottom: 16%;
+  }
+
+  .cinematic-hero__card {
+    gap: 11px;
+    padding: 11px 15px;
+    border-radius: 19px;
+  }
+
+  .cinematic-hero__card-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .cinematic-hero__card-title {
+    font-size: 12.5px;
+  }
+
+  .cinematic-hero__card-description {
+    font-size: 10.5px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cinematic-hero {
+    height: 720px;
+    margin-inline: -12px calc(-1 * clamp(24px, 4.4vw, 85px));
+  }
+
+  .cinematic-hero__silhouette {
+    top: 3%;
+    width: min(68%, 510px);
+  }
+
+  .cinematic-hero__card-position--top {
+    right: 7.2%;
+    top: 21.8%;
+  }
+
+  .cinematic-hero__card-position--bottom {
+    left: 6.2%;
+    bottom: 30.5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-hero__card-float {
+    animation: none;
+  }
+  .cinematic-hero__card,
+  .cinematic-hero__canvas {
+    transition: none;
+  }
+}

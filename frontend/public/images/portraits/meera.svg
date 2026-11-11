@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" role="img" aria-label="Illustrated fictional clinician portrait">
+  <defs>
+    <radialGradient id="bg" cx=".5" cy=".28" r=".85">
+      <stop offset="0" stop-color="#571A37"/><stop offset=".58" stop-color="#1B0E25"/><stop offset="1" stop-color="#09060F"/>
+    </radialGradient>
+    <linearGradient id="cloth" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6E35A4"/><stop offset="1" stop-color="#190D23"/>
+    </linearGradient>
+    <linearGradient id="skin" x1=".3" y1="0" x2=".7" y2="1">
+      <stop stop-color="#C58F97"/><stop offset="1" stop-color="#A26D78"/>
+    </linearGradient>
+    <radialGradient id="halo"><stop stop-color="#E8A0B7" stop-opacity=".28"/><stop offset="1" stop-color="#E8A0B7" stop-opacity="0"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".055"/></feComponentTransfer>
+    </filter>
+    <clipPath id="frame"><rect width="600" height="760" rx="0"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="600" height="760" fill="url(#bg)"/>
+    <circle cx="300" cy="290" r="244" fill="url(#halo)"/>
+    <circle cx="300" cy="330" r="210" fill="none" stroke="#E8A0B7" stroke-opacity=".14"/>
+    <circle cx="300" cy="330" r="238" fill="none" stroke="#E8A0B7" stroke-opacity=".07"/>
+    <circle cx="92" cy="120" r="72" fill="#6E35A4" opacity=".2" filter="url(#soft)"/>
+    <circle cx="518" cy="640" r="110" fill="#E8A0B7" opacity=".08" filter="url(#soft)"/>
+    <path d="M26 620c0-116 86-183 274-183s274 67 274 183v140H26Z" fill="url(#cloth)"/>
+    <path d="M250 447h100v119c-18 34-82 34-100 0Z" fill="url(#skin)"/>
+    <path d="M250 486c26 23 74 23 100 0v39c-21 27-79 27-100 0Z" fill="#A26D78" opacity=".45"/>
+    <ellipse cx="300" cy="341" rx="96" ry="122" fill="url(#skin)"/>
+    <ellipse cx="204" cy="348" rx="18" ry="29" fill="#A26D78"/>
+    <ellipse cx="396" cy="348" rx="18" ry="29" fill="#A26D78"/>
+    
+      <path d="M210 306c-30-58-15-155 33-190 32-24 84-24 116 2 46 38 59 130 31 188-4-50-15-84-36-104-33 21-78 20-110-2-20 24-30 61-34 106Z" fill="#2A1734"/>
+      <path d="M220 264c-22 54-20 112 4 161-27-11-50-49-52-88-2-29 12-65 29-83Z" fill="#2A1734"/>
+      <path d="M380 264c22 54 20 112-4 161 27-11 50-49 52-88 2-29-12-65-29-83Z" fill="#2A1734"/>
+      <path d="M235 244c19-31 44-44 65-44s48 12 66 44" fill="none" stroke="#4B2D5A" stroke-width="9" stroke-linecap="round"/>
+    <path d="M258 316c12-7 25-7 37 0" fill="none" stroke="#2A1734" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+    <path d="M305 316c12-7 25-7 37 0" fill="none" stroke="#2A1734" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+    <path d="M263 340c9-5 20-5 29 0" fill="none" stroke="#2A152F" stroke-width="4" stroke-linecap="round"/>
+    <path d="M308 340c9-5 20-5 29 0" fill="none" stroke="#2A152F" stroke-width="4" stroke-linecap="round"/>
+    <path d="M300 345c-3 18-7 29-2 34 4 3 9 2 13-2" fill="none" stroke="#A26D78" stroke-width="3" stroke-linecap="round"/>
+    <path d="M280 405c13 8 27 8 40 0" fill="none" stroke="#6E2F45" stroke-width="4" stroke-linecap="round"/>
+    <path d="M286 404c10 5 18 5 28 0" fill="#E8A0B7" opacity=".55"/>
+    
+      <path d="M268 445c8 30 56 30 64 0" fill="none" stroke="#E8A0B7" stroke-width="3" opacity=".8"/>
+      <circle cx="300" cy="471" r="5" fill="#E8A0B7" opacity=".9"/>
+    <path d="M178 720c32-40 72-57 122-61M422 720c-32-40-72-57-122-61" fill="none" stroke="#E8A0B7" stroke-width="2" opacity=".22"/>
+    <path d="M370 610c0 70 44 88 44 130 0 25-15 43-42 46" fill="none" stroke="#E8A0B7" stroke-width="4" opacity=".5"/>
+    <circle cx="416" cy="789" r="14" fill="#E8A0B7" opacity=".65"/>
+    <rect width="600" height="760" filter="url(#grain)" opacity=".55"/>
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /doctor
+Disallow: /admin
+Disallow: /book
+Disallow: /payment/
+Disallow: /consult/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+
+# Replace with the production domain before launch.
+Sitemap: https://nayacura.example/sitemap.xml

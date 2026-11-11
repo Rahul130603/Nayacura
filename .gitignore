@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+.npm-cache/
+backend/prisma/*.db
+backend/prisma/*.db-journal
+uploads/
+coverage/
+*.log
+.DS_Store
+nayacura.zip
+qa-artifacts/
+.package/
+.tmp/
