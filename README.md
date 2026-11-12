@@ -46,7 +46,7 @@ Additional screenshots are available in [`docs/screenshots`](docs/screenshots).
 
 ### Requirements
 
-- Node.js **20.11+** (tested on Node 22.18)
+- Node.js **20.12–22.x** (tested on Node 22.18)
 - npm **10+**
 - No PostgreSQL server is required for the local demo. It uses SQLite through Prisma for a zero-config run.
 

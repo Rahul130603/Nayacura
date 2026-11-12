@@ -92,10 +92,16 @@ From the repository root:
 ```bash
 npm ci
 npm run build
-npm test
 ```
 
-`npm run build` compiles the Express API and creates `frontend/dist`.
+`npm run build` generates the Prisma Client before compiling the Express API and creates
+`frontend/dist`. Set `DATABASE_URL` to the PostgreSQL connection string before building
+so Prisma generates a PostgreSQL client.
+
+For a Render Node web service, use the repository root, build command
+`npm ci --include=dev && npm run build`, and start command `npm start`.
+Keep `DATABASE_URL` and the production environment variables in the Render dashboard.
+Use Node 22 if a dashboard `NODE_VERSION` override is set.
 
 ## 5. Run
 
