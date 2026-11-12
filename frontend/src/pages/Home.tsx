@@ -333,23 +333,23 @@ export default function Home() {
       />
 
       {/* 1 — Cinematic hero */}
-      <section className="hero-section relative min-h-[100svh] overflow-hidden bg-midnight pt-28 sm:pt-36">
+      <section className="hero-section relative min-h-[100svh] overflow-hidden bg-midnight pb-[64vw] pt-24 sm:pb-0 sm:pt-36">
         <img
           src="/images/art/home-hero-heartbound-couple.png"
           alt=""
           width={1672}
           height={941}
           fetchPriority="high"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[62%_center] opacity-100 sm:object-right"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[70vw] w-full object-cover object-right sm:top-0 sm:h-full"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-midnight/75 via-midnight/25 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70vw] bg-gradient-to-b from-midnight via-transparent to-transparent sm:inset-0 sm:h-auto sm:bg-gradient-to-r sm:from-midnight/75 sm:via-midnight/25" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-midnight/35 via-transparent to-midnight/25" />
         <div className="pointer-events-none absolute -left-40 top-1/3 h-[500px] w-[500px] rounded-full bg-burgundy/20 blur-[130px]" />
         <div className="pointer-events-none absolute right-0 top-0 h-full w-[55%] bg-[radial-gradient(ellipse_at_60%_40%,rgba(110,53,164,0.18),transparent_65%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-midnight to-transparent z-10" />
 
         <div className="container-naya relative z-20">
-          <div className="hero-section__layout grid min-h-[calc(100svh-9rem)] items-center gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-0">
+          <div className="hero-section__layout grid items-center gap-6 sm:min-h-[calc(100svh-9rem)] lg:grid-cols-[1.02fr_0.98fr] lg:gap-0">
             <div className="relative z-20 pb-8 pt-6 lg:pb-20">
               <motion.div
                 initial={reduce ? false : { opacity: 0, y: 14 }}

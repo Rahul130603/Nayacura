@@ -59,7 +59,8 @@ export default function Services() {
         title="Care for the parts that are"
         accent="hard to say out loud."
         description="Twenty-six specialist pathways across sexual wellness, relationships and emotional health. Start with a concern, not a diagnosis. Every pathway can begin with a private conversation."
-        art="rings"
+        backgroundImage={{ src: '/images/art/services-hero-couple.png', width: 1851, height: 849 }}
+        align="left"
       >
         <div className="flex flex-wrap items-center gap-4">
           <ButtonLink to="/doctors" arrow>

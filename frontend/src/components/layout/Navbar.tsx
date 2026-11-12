@@ -356,12 +356,12 @@ export function Navbar() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="container-naya flex-1 overflow-y-auto pb-10 pt-4">
+            <div className="container-naya min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
               {user && (
                 <div className="mb-8 flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
-                  <div className="flex items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
                     <Avatar name={user.name} size="md" />
-                    <div>
+                    <div className="min-w-0 break-words">
                       <p className="font-sans text-sm font-semibold text-ivory">{user.name}</p>
                       <p className="font-body text-[11px] text-mauve">{user.email}</p>
                     </div>

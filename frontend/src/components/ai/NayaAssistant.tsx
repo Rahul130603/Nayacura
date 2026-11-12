@@ -49,7 +49,7 @@ export function NayaAssistant() {
         aria-label={open ? 'Close Naya AI assistant' : 'Open Naya AI wellness assistant'}
         aria-expanded={open}
         className={cn(
-          'group fixed bottom-5 right-5 z-[90] flex items-center gap-2.5 rounded-full border border-lavender/25 bg-gradient-to-br from-plum via-burgundy to-royal px-4 py-3.5 text-ivory shadow-[0_18px_60px_-15px_rgba(110,53,164,0.75)] transition-all duration-300 hover:border-rose/40 hover:shadow-[0_22px_70px_-15px_rgba(232,160,183,0.55)] sm:bottom-7 sm:right-7',
+          'group fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-[90] flex items-center gap-2.5 rounded-full border border-lavender/25 bg-gradient-to-br from-plum via-burgundy to-royal p-2.5 text-ivory shadow-[0_18px_60px_-15px_rgba(110,53,164,0.75)] transition-all duration-300 hover:border-rose/40 hover:shadow-[0_22px_70px_-15px_rgba(232,160,183,0.55)] sm:bottom-7 sm:right-7 sm:px-4 sm:py-3.5',
           open && 'scale-95 opacity-0 pointer-events-none',
         )}
       >
@@ -64,7 +64,7 @@ export function NayaAssistant() {
             <Sparkles className="h-4 w-4 text-rose" />
           )}
         </span>
-        <span className="text-left">
+        <span className="hidden text-left sm:block">
           <span className="block font-sans text-[11px] font-semibold leading-none">Ask Naya</span>
           <span className="mt-1 block font-body text-[8.5px] leading-none text-mauve">
             Private AI companion

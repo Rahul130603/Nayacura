@@ -60,6 +60,7 @@ export function PageHero({
       className={cn(
         'page-hero relative flex min-h-[100svh] items-center overflow-hidden bg-midnight pb-16 pt-32 sm:pb-20 sm:pt-40 lg:pb-24 lg:pt-44',
         backgroundImage && 'pb-[65vw] sm:pb-[53vw] xl:grid xl:min-h-[min(44vw,51rem)] xl:items-center xl:pb-24',
+        backgroundImage && 'max-sm:flex-col-reverse max-sm:justify-end max-sm:gap-5 max-sm:pb-0',
         className,
       )}
     >
@@ -68,13 +69,13 @@ export function PageHero({
       {backgroundImage && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 right-0 w-[142%] sm:w-[115%] xl:inset-0 xl:w-full"
+          className="pointer-events-none relative w-full sm:absolute sm:bottom-0 sm:right-0 sm:w-[115%] xl:inset-0 xl:w-full"
         >
           <img
             {...backgroundImage}
             alt=""
             fetchPriority="high"
-            className="block h-auto w-full xl:h-full xl:object-cover xl:object-[right_20%]"
+            className="block h-auto w-full max-sm:aspect-[4/3] max-sm:object-cover max-sm:object-right xl:h-full xl:object-cover xl:object-[right_20%]"
           />
           <div className="absolute inset-0 bg-[linear-gradient(to_bottom,#09060f,transparent_25%,transparent_86%,#09060f)] xl:bg-[linear-gradient(to_right,rgba(9,6,15,0.92)_8%,rgba(9,6,15,0.6)_36%,transparent_59%)]" />
           <div className="absolute inset-0 hidden bg-gradient-to-t from-midnight/80 via-transparent to-midnight/25 xl:block" />

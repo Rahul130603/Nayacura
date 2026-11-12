@@ -123,6 +123,12 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+select option,
+select optgroup {
+  background-color: #190d23;
+  color: #f8f2f6;
+}
+
 button {
   font: inherit;
 }
