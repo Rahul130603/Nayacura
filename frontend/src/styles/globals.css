@@ -43,6 +43,32 @@ body {
   overflow-x: hidden;
 }
 
+/* Match the compact desktop layout across routes while keeping touch layouts full size. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  body {
+    --desktop-scale: 0.8;
+    zoom: var(--desktop-scale);
+  }
+
+  body .site-nav__about {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 700px) and (hover: hover) and (pointer: fine) {
+  body .hero-section {
+    padding-top: 6rem;
+  }
+
+  .hero-section__layout {
+    align-items: start;
+  }
+
+  .hero-section .cinematic-hero {
+    height: 650px;
+  }
+}
+
 ::selection {
   background: rgba(232, 160, 183, 0.35);
   color: #fff;

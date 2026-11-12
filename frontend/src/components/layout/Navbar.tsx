@@ -163,7 +163,7 @@ export function Navbar() {
                 to="/about"
                 className={({ isActive }) =>
                   cn(
-                    'hidden rounded-full px-4 py-2 font-sans text-[12.5px] font-medium transition-colors xl:block',
+                    'site-nav__about hidden rounded-full px-4 py-2 font-sans text-[12.5px] font-medium transition-colors xl:block',
                     isActive ? 'bg-white/[0.07] text-ivory' : 'text-ivory/70 hover:text-ivory',
                   )
                 }

@@ -465,7 +465,7 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-midnight to-transparent z-10" />
 
         <div className="container-naya relative z-20">
-          <div className="grid min-h-[calc(100svh-9rem)] items-center gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-0">
+          <div className="hero-section__layout grid min-h-[calc(100svh-9rem)] items-center gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-0">
             <div className="relative z-20 pb-8 pt-6 lg:pb-20">
               <motion.div
                 initial={reduce ? false : { opacity: 0, y: 14 }}
@@ -479,7 +479,7 @@ export default function Home() {
                 </span>
               </motion.div>
 
-              <h1 className="display max-w-[740px] text-[clamp(2.65rem,4.9vw,5.4rem)]">
+              <h1 className="display max-w-[740px] text-[clamp(2.65rem,calc(4.9vw/var(--desktop-scale,1)),5.4rem)]">
                 {['Rediscover', 'Confidence.'].map((line, i) => (
                   <span key={line} className="block overflow-hidden">
                     <motion.span
@@ -494,7 +494,7 @@ export default function Home() {
                 ))}
                 <span className="block overflow-hidden">
                   <motion.span
-                    className="display-soft block text-[clamp(2.5rem,4.6vw,5.1rem)]"
+                    className="display-soft block text-[clamp(2.5rem,calc(4.6vw/var(--desktop-scale,1)),5.1rem)]"
                     initial={reduce ? false : { y: '110%' }}
                     animate={{ y: 0 }}
                     transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
