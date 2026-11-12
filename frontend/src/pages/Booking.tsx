@@ -22,6 +22,7 @@ import {
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useDoctors } from '@/hooks/useDoctors';
+import { getDemoStockPortrait } from '@/data/doctors';
 import { useToast } from '@/components/ui/Toast';
 import { Seo } from '@/components/Seo';
 import { Button, ButtonLink } from '@/components/ui/Button';
@@ -83,6 +84,17 @@ declare global {
   }
 }
 
+function BookingDoctorAvatar({ doctor }: { doctor: Doctor }) {
+  const portrait = getDemoStockPortrait(doctor);
+  return (
+    <Avatar
+      name={doctor.name}
+      src={portrait?.src ?? doctor.photoUrl}
+      objectPosition={portrait?.position}
+    />
+  );
+}
+
 function Summary({
   doctor,
   mode,
@@ -102,7 +114,7 @@ function Summary({
       {doctor ? (
         <>
           <div className="mt-4 flex items-center gap-3">
-            <Avatar name={doctor.name} src={doctor.photoUrl} size="md" />
+            <BookingDoctorAvatar doctor={doctor} />
             <div className="min-w-0">
               <p className="truncate font-sans text-[12px] font-semibold text-ivory">{doctor.name}</p>
               <p className="truncate font-body text-[9.5px] text-mauve">
@@ -534,7 +546,7 @@ export default function Booking() {
                                   : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]',
                               )}
                             >
-                              <Avatar name={item.name} src={item.photoUrl} size="md" />
+                              <BookingDoctorAvatar doctor={item} />
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <p className="font-sans text-[12.5px] font-semibold text-ivory">

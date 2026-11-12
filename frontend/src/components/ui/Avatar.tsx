@@ -3,11 +3,13 @@ import { cn, initials } from '@/lib/utils';
 export function Avatar({
   name,
   src,
+  objectPosition,
   size = 'md',
   className,
 }: {
   name: string;
   src?: string | null;
+  objectPosition?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }) {
@@ -31,6 +33,7 @@ export function Avatar({
             src={src}
             alt=""
             loading="lazy"
+            style={{ objectPosition }}
             className="h-full w-full object-cover object-center [filter:saturate(.65)_contrast(1.03)]"
           />
           <span
