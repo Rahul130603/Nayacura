@@ -34,6 +34,7 @@ export function createApp() {
     }),
   );
   app.use(
+    '/api',
     cors({
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);

@@ -105,7 +105,7 @@ export const appointmentStatusSchema = z.object({
 export const aiChatSchema = z.object({
   message: z.string().trim().min(1, 'Please write a message.').max(2000),
   conversationId: z.string().max(100).nullable().optional(),
-  language: z.enum(['en', 'ta']).default('en'),
+  language: z.enum(['en', 'ta', 'tanglish']).default('en'),
   consent: z.boolean().default(false),
 });
 

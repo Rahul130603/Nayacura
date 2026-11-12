@@ -1,4 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+export type ChatLanguage = 'en' | 'ta' | 'tanglish';
 
 export class ApiError extends Error {
   status: number;
@@ -87,7 +88,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 }
 
 export async function streamAi(
-  payload: { message: string; conversationId?: string | null; language?: 'en' | 'ta'; consent: boolean },
+  payload: { message: string; conversationId?: string | null; language?: ChatLanguage; consent: boolean },
   onToken: (token: string) => void,
   signal?: AbortSignal,
 ) {

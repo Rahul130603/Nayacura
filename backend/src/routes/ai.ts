@@ -29,7 +29,6 @@ IDENTITY AND BOUNDARIES — non-negotiable:
 - Ask at most one gentle clarifying question; do not overwhelm. Keep answers concise (roughly 120-220 words unless the user asks for more detail).
 - Do not ask for identifying information or clinical documents.
 - If asked about booking, explain that users can browse specialists, choose video or in-person, select a time and pay securely.
-- If the user writes in Tamil, answer in Tamil. Otherwise answer in English.
 - End with a short, grounded next step, not a sales pitch.
 - Every response must be appropriate for a healthcare platform.`;
 
@@ -45,6 +44,11 @@ const emergencyTerms = [
   'heavy bleeding',
   'severe bleeding',
   'unconscious',
+  'tharkolai',
+  'tharkkolai',
+  'vaazha viruppam illa',
+  'nenju vali',
+  'adhiga ratham',
   'தற்கொலை',
   'உயிரை மாய்த்து',
   'நெஞ்சு வலி',
@@ -56,16 +60,49 @@ function isEmergency(message: string) {
   return emergencyTerms.some((term) => normalized.includes(term));
 }
 
-function emergencyResponse(language: string) {
+type ChatLanguage = 'en' | 'ta' | 'tanglish';
+
+const replyLanguage: Record<ChatLanguage, string> = {
+  en: 'Reply in English.',
+  ta: 'Reply in Tamil using Tamil script.',
+  tanglish: 'Reply in conversational Tamil written in Latin letters (Tanglish). Use familiar English terms naturally and do not use Tamil script.',
+};
+
+function emergencyResponse(language: ChatLanguage) {
+  if (language === 'tanglish') {
+    return 'Naan Naya, oru AI assistant. Idhu emergency-a irukkalaam. Ippove local emergency services-a call pannunga (India-la 112) illa pakkathula irukkura emergency department-ku ponga. Mudinja nambikkaiyana oruthar kooda irunga. Indha chat emergency care kudukka mudiyadhu.';
+  }
   if (language === 'ta') {
     return `நான் நயா, ஒரு AI உதவியாளர் — மருத்துவர் அல்ல. நீங்கள் சொல்வது அவசரமாக இருக்கலாம். தயவுசெய்து இப்போதே உள்ளூர் அவசர சேவையை (இந்தியாவில் 112) அழைக்கவும் அல்லது அருகிலுள்ள அவசர மருத்துவமனைக்குச் செல்லவும். மனநல நெருக்கடிக்கு Tele-MANAS 14416 என்ற எண்ணில் உதவி கிடைக்கும். தனியாக இருக்க வேண்டாம் — நம்பகமான ஒருவரை அருகில் அழையுங்கள். இந்த உரையாடல் அவசர சிகிச்சைக்கு மாற்றல்ல.`;
   }
   return `I'm Naya, an AI assistant — not a doctor. What you have described may be an emergency. Please contact your local emergency service now (112 in India) or go to the nearest emergency department. For mental health crisis support in India, Tele-MANAS is available on 14416. If you can, stay with a trusted person and do not remain alone. This chat cannot provide emergency care.`;
 }
 
-function fallbackReply(message: string, language: 'en' | 'ta') {
+function fallbackReply(message: string, language: ChatLanguage) {
   const lower = message.toLowerCase();
   const ta = language === 'ta';
+
+  if (language === 'tanglish') {
+    if (/book|appointment|slot|consult|neram|sandhippu|பதிவு|ஆலோசனை/.test(lower)) {
+      return 'Appointment book panna, Find a Doctor-la specialist-a select pannunga. Video illa in-person choose pannitu available date and time-a pick pannunga. Booking steps mudinja confirmation varum. Consultation-la ungalukku comfortable-a irukkura details mattum share pannalaam.';
+    }
+    if (/pain|hurt|discomfort|\bvali\b|valikk|வலி/.test(lower)) {
+      return 'Intimacy time-la vali thodarndhaa qualified doctor-kitta pesunga. Sudden-a romba severe pain illa heavy bleeding irundhaa urgent care seek pannunga. Naan AI, cause-a diagnose panna mudiyadhu.';
+    }
+    if (/anxiety|anxious|worry|nervous|bayam|kavalai|பதற்றம்|கவலை/.test(lower)) {
+      return 'Intimacy pathi anxiety varradhu common. Comfortable-a irukkura pace-la ponga, thevaipatta break edunga, nambikkaiyana partner-kitta pesunga. Idhu daily life-a affect panninaa counsellor illa qualified mental health professional-kitta pesalaam.';
+    }
+    if (/desire|libido|interest|aasai|viruppam|விருப்பம்|ஆசை/.test(lower)) {
+      return 'Desire ovvorutharukkum different-a irukkum. Stress, sleep, health, medicines, relationship ellam affect pannalaam. Indha change ungalukku worry-a irundhaa, qualified clinician illa counsellor-kitta pesalaam.';
+    }
+    if (/relationship|partner|couple|communication|uravu|thunai|உறவு|துணை/.test(lower)) {
+      return 'Calm-a irukkura nerathula partner-kitta neenga enna feel panreenga, enna support venum nu solli paarunga. Problems thodarndhaa counsellor-kitta pesalaam. Bayam, force illa violence irundhaa, unga safety-ku thaniya support seek pannunga.';
+    }
+    if (/doctor|specialist|counsellor|maruthuv|nibunar|நிபுணர்/.test(lower)) {
+      return 'Physical symptoms-ku qualified doctor oru starting point. Anxiety, communication illa relationship concerns-ku counsellor help pannalaam. Find a Doctor page-la language and specialisation vechu filter pannunga.';
+    }
+    return 'Naan Naya. Wellness, relationship, consultation booking, specialist select panradhu pathi general-a help panna mudiyum. Unga kelviya konjam detail-a sollunga. Naan AI, diagnosis illa treatment recommend panna mudiyadhu.';
+  }
 
   if (/book|appointment|slot|consult|பதிவு|நேரம்|ஆலோசனை/.test(lower)) {
     return ta
@@ -119,7 +156,7 @@ function sleep(ms: number) {
 async function streamFallback(
   res: import('express').Response,
   text: string,
-  language: 'en' | 'ta',
+  language: ChatLanguage,
 ) {
   const words = text.split(/(\s+)/);
   for (const word of words) {
@@ -133,7 +170,7 @@ async function streamFallback(
 async function streamLlm(
   res: import('express').Response,
   messages: ChatMessage[],
-  language: 'en' | 'ta',
+  language: ChatLanguage,
 ) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60_000);
@@ -150,7 +187,7 @@ async function streamLlm(
         stream: true,
         temperature: 0.35,
         max_tokens: 700,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: 'system', content: `${SYSTEM_PROMPT}\n${replyLanguage[language]}` }, ...messages],
       }),
       signal: controller.signal,
     });
@@ -199,7 +236,7 @@ aiRouter.post(
     const body = req.body as {
       message: string;
       conversationId?: string | null;
-      language: 'en' | 'ta';
+      language: ChatLanguage;
       consent: boolean;
     };
 
@@ -300,7 +337,9 @@ aiRouter.post(
         sse(res, {
           type: 'token',
           token:
-            '\n\nI could not reach the AI model just now. I can still offer general guidance, but this is not a medical assessment. For a personal concern, please consult a qualified professional. If this is urgent, contact local emergency services.',
+            body.language === 'tanglish'
+              ? `\n\nAI model ippo connect aagala. ${fallbackReply(body.message, body.language)}`
+              : '\n\nI could not reach the AI model just now. I can still offer general guidance, but this is not a medical assessment. For a personal concern, please consult a qualified professional. If this is urgent, contact local emergency services.',
         });
         sse(res, { type: 'done', mode: 'error-fallback', language: body.language });
       }
@@ -318,7 +357,7 @@ aiRouter.post(
         });
         await prisma.aIConversation.update({
           where: { id: conversationId },
-          data: { updatedAt: new Date() },
+          data: { updatedAt: new Date(), language: body.language },
         });
       } catch (error) {
         logger.warn('AI conversation persistence failed', {

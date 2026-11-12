@@ -20,7 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { api, streamAi } from '@/lib/api';
+import { api, streamAi, type ChatLanguage } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
@@ -49,9 +49,19 @@ const suggestions = {
     'குறைந்த பாலியல் விருப்பத்திற்கு சரியான நிபுணரைக் கண்டறிய உதவுங்கள்.',
     'முதல் ஆலோசனையில் என்ன நடக்கும்?',
   ],
+  tanglish: [
+    'Intimacy pathi anxiety irukku. Enga start pannalaam?',
+    'Doctor-a paakanuma illa counsellor-a?',
+    'Low desire-ku endha specialist-a paakanum?',
+    'First consultation-la enna nadakkum?',
+  ],
 };
 
 const greeting = {
+  tanglish: {
+    title: 'Inga unga kelviya kekkalaam.',
+    body: 'Naan Naya, unga AI wellness companion. Sexual wellness, consultation options, endha specialist-a paakanum nu general-a explain panna mudiyum. Naan doctor illa, diagnosis panna illa medicine prescribe panna mudiyadhu.',
+  },
   en: {
     title: 'A private place to begin.',
     body: "I'm Naya, an AI wellness companion — not a doctor. I can explain general sexual wellness topics, help you understand consultation options, and guide you to the right kind of specialist. I can't diagnose, prescribe, or promise outcomes.",
@@ -121,7 +131,7 @@ export function NayaChat({
   const [messages, setMessages] = useState<ChatMessageUI[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [input, setInput] = useState('');
-  const [language, setLanguage] = useState<'en' | 'ta'>('en');
+  const [language, setLanguage] = useState<ChatLanguage>('en');
   const [consent, setConsent] = useState(false);
   const [sending, setSending] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -241,7 +251,8 @@ export function NayaChat({
         messages: { id: string; role: string; content: string; createdAt: string }[];
       }>(`/ai/conversations/${id}`);
       setConversationId(data.conversation.id);
-      setLanguage(data.conversation.language === 'ta' ? 'ta' : 'en');
+      const savedLanguage = data.conversation.language;
+      setLanguage(savedLanguage === 'ta' || savedLanguage === 'tanglish' ? savedLanguage : 'en');
       setMessages(
         data.messages.map((m) => ({
           id: m.id,
@@ -528,15 +539,19 @@ export function NayaChat({
       {/* Composer + safety */}
       <div className="border-t border-white/[0.08] px-3 pb-3 pt-3 sm:px-4">
         <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2">
-          <button
-            type="button"
-            onClick={() => setLanguage((l) => (l === 'en' ? 'ta' : 'en'))}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 font-sans text-[9px] font-semibold uppercase tracking-wider text-mauve transition-colors hover:border-lavender/25 hover:text-lavender"
-            aria-label={`Switch language to ${language === 'en' ? 'Tamil' : 'English'}`}
-          >
-            <Languages className="h-3 w-3" />
-            {language === 'en' ? 'English · தமிழ்' : 'தமிழ் · English'}
-          </button>
+          <label className="inline-flex items-center gap-1.5 text-lavender">
+            <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+            <select
+              aria-label="Reply language"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value as ChatLanguage)}
+              className="min-h-9 rounded-full border border-white/15 bg-plum px-2.5 font-sans text-xs text-ivory"
+            >
+              <option value="en">English</option>
+              <option value="ta">தமிழ்</option>
+              <option value="tanglish">Tanglish</option>
+            </select>
+          </label>
           <span className="inline-flex items-center gap-1 font-body text-[8.5px] text-mauve/60">
             <ShieldAlert className="h-2.5 w-2.5" /> Not for emergencies
           </span>
@@ -568,7 +583,7 @@ export function NayaChat({
               }
             }}
             maxLength={2000}
-            placeholder={language === 'en' ? 'Ask Naya something private…' : 'நயாவிடம் தனிப்பட்டதாகக் கேளுங்கள்…'}
+            placeholder={language === 'tanglish' ? 'Unga kelviya Naya-kitta kelunga…' : language === 'ta' ? 'நயாவிடம் தனிப்பட்டதாகக் கேளுங்கள்…' : 'Ask Naya something private…'}
             className="max-h-[120px] min-h-[40px] flex-1 resize-none bg-transparent px-2.5 py-2.5 font-body text-[12.5px] leading-relaxed text-ivory placeholder:text-mauve/55 focus:outline-none"
           />
           {sending ? (

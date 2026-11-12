@@ -35,7 +35,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
-import { cn, formatCurrency, formatDate, formatDateTime } from '@/lib/utils';
+import { cn, formatCurrency, formatDate, formatDateTime, formatTime } from '@/lib/utils';
 import type { Appointment } from '@/types';
 
 type DoctorOverview = {
@@ -597,9 +597,9 @@ export default function DoctorDashboard() {
                   {overview?.today.length ? (
                     overview.today.map((appointment) => (
                       <div key={appointment.id} className="flex flex-col gap-3 rounded-xl border border-white/[0.07] p-3.5 sm:flex-row sm:items-center">
-                        <div className="w-16 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 sm:w-32 sm:shrink-0 sm:flex-col sm:items-start sm:gap-1">
                           <p className="font-sans text-[11px] font-semibold text-ivory">
-                            {new Date(appointment.startAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}
+                            {formatTime(appointment.startAt, appointment.timezone)}
                           </p>
                           <Badge tone={statusTone(appointment.status)} className="mt-1">
                             {statusLabels[appointment.status]}
@@ -611,20 +611,21 @@ export default function DoctorDashboard() {
                             {appointment.mode === 'ONLINE' ? 'Video' : 'In person'} · {appointment.bookingId}
                           </p>
                         </div>
-                        <div className="flex gap-2">
-                          {appointment.mode === 'ONLINE' && appointment.status === 'CONFIRMED' && (
-                            <ButtonLink to={`/consult/${appointment.id}`} size="sm" variant="secondary" className="min-h-8 px-3 text-[9px]">
-                              Join
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          {appointment.canJoin && (
+                            <ButtonLink to={`/consult/${appointment.id}`} size="sm" className="min-h-11">
+                              Join video
                             </ButtonLink>
                           )}
                           {appointment.status === 'CONFIRMED' && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="min-h-8 px-3 text-[9px]"
+                              className="min-h-11"
+                              disabled={actionLoading}
                               onClick={() => void updateStatus(appointment, 'IN_PROGRESS')}
                             >
-                              Start
+                              Start appointment
                             </Button>
                           )}
                           {appointment.status === 'IN_PROGRESS' && (
@@ -734,7 +735,7 @@ export default function DoctorDashboard() {
                             <Badge tone={statusTone(appointment.status)}>{statusLabels[appointment.status]}</Badge>
                           </div>
                           <p className="mt-1 font-body text-[9px] text-mauve">
-                            {new Date(appointment.startAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} ·{' '}
+                            {formatTime(appointment.startAt, appointment.timezone)} ·{' '}
                             {appointment.mode === 'ONLINE' ? 'Secure video' : 'In person'} · {appointment.bookingId}
                           </p>
                           <p className="mt-1 font-body text-[8.5px] text-mauve/70">
@@ -743,19 +744,20 @@ export default function DoctorDashboard() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {appointment.mode === 'ONLINE' && ['CONFIRMED', 'IN_PROGRESS'].includes(appointment.status) && (
-                          <ButtonLink to={`/consult/${appointment.id}`} size="sm" variant="secondary" className="min-h-8 px-3 text-[9px]">
-                            Join room
+                        {appointment.canJoin && (
+                          <ButtonLink to={`/consult/${appointment.id}`} size="sm" className="min-h-11">
+                            Join video
                           </ButtonLink>
                         )}
                         {appointment.status === 'CONFIRMED' && (
                           <Button
                             size="sm"
                             variant="outline"
-                            className="min-h-8 px-3 text-[9px]"
+                            className="min-h-11"
+                            disabled={actionLoading}
                             onClick={() => void updateStatus(appointment, 'IN_PROGRESS')}
                           >
-                            Start
+                            Start appointment
                           </Button>
                         )}
                         {appointment.status === 'IN_PROGRESS' && (
@@ -812,9 +814,12 @@ export default function DoctorDashboard() {
                   Existing appointments keep their booked times.
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={() => void availabilityQuery.refetch()}>
-                  Reset
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" size="sm" disabled={!availabilityDirty || actionLoading} onClick={() => {
+                  setWindows(availabilityQuery.data?.windows ?? []);
+                  setAvailabilityDirty(false);
+                }}>
+                  Reset changes
                 </Button>
                 <Button size="sm" onClick={() => void saveAvailability()} loading={actionLoading} disabled={!availabilityDirty} icon={<Save className="h-3.5 w-3.5" />}>
                   Save schedule
@@ -828,7 +833,7 @@ export default function DoctorDashboard() {
                 const hasWindows = dayWindows.length > 0;
                 return (
                   <div key={day} className="border-b border-white/[0.06] px-4 py-4 last:border-b-0 sm:px-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="grid gap-3 lg:grid-cols-[10rem_minmax(0,1fr)]">
                       <div className="flex items-center gap-3 sm:pt-1.5">
                         <button
                           type="button"
@@ -843,8 +848,8 @@ export default function DoctorDashboard() {
                         >
                           <span
                             className={cn(
-                              'absolute top-0.5 h-3.5 w-3.5 rounded-full bg-ivory transition-transform',
-                              hasWindows ? 'translate-x-[18px]' : 'translate-x-0.5',
+                              'absolute left-0.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-ivory transition-transform',
+                              hasWindows && 'translate-x-4',
                             )}
                           />
                         </button>
@@ -853,7 +858,7 @@ export default function DoctorDashboard() {
                       {hasWindows ? (
                         <div className="space-y-2">
                           {dayWindows.map(({ window, index }) => (
-                            <div key={`${weekday}-${index}`} className="flex flex-wrap items-center gap-2">
+                            <div key={`${weekday}-${index}`} className="flex flex-wrap items-center gap-2 rounded-xl border border-white/[0.08] p-2.5">
                               <input
                                 type="time"
                                 value={toTime(window.startMinute)}
@@ -882,7 +887,7 @@ export default function DoctorDashboard() {
                               <button
                                 type="button"
                                 onClick={() => removeWindow(index)}
-                                className="grid h-7 w-7 place-items-center rounded-full text-mauve hover:bg-rose/10 hover:text-rose"
+                                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-mauve hover:bg-rose/10 hover:text-rose"
                                 aria-label={`Remove ${day} window ${index + 1}`}
                               >
                                 <X className="h-3.5 w-3.5" />
@@ -892,7 +897,7 @@ export default function DoctorDashboard() {
                           <button
                             type="button"
                             onClick={() => addWindow(weekday)}
-                            className="inline-flex items-center gap-1 font-sans text-[8.5px] font-semibold text-lavender hover:text-rose"
+                            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-lavender/25 px-3 font-sans text-xs font-semibold text-lavender hover:bg-lavender/10"
                           >
                             <Plus className="h-3 w-3" /> Add window
                           </button>

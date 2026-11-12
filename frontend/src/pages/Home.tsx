@@ -92,7 +92,7 @@ const benefits = [
   {
     icon: MessageCircle,
     title: 'Language that includes you',
-    copy: 'Choose clinicians by spoken language, and use Naya AI in English or Tamil for general guidance.',
+    copy: 'Choose clinicians by spoken language, and use Naya AI in English, Tamil or Tanglish for general guidance.',
   },
   {
     icon: EyeOff,
@@ -1117,7 +1117,7 @@ export default function Home() {
                 <Badge tone="lavender" dot>
                   AI companion
                 </Badge>
-                <span className="font-body text-[9.5px] text-mauve">English & தமிழ்</span>
+                <span className="font-body text-[9.5px] text-mauve">English · தமிழ் · Tanglish</span>
               </div>
               <h2 className="display mt-6 text-[clamp(2.5rem,5vw,4.6rem)]">
                 Meet Naya. <span className="display-soft">A quieter place to start.</span>
@@ -1340,7 +1340,7 @@ export default function Home() {
                   [ShieldCheck, 'Privacy-minded'],
                   [BadgeCheck, 'Demo credentials labelled'],
                   [Heart, 'Consent-first'],
-                  [Languages, 'English & Tamil'],
+                  [Languages, 'English, Tamil & Tanglish'],
                 ].map(([Icon, label]) => {
                   const Component = Icon as typeof ShieldCheck;
                   return (

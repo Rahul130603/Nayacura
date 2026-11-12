@@ -22,7 +22,7 @@ export default function AI() {
     <>
       <Seo
         title="Naya AI — Your Private Wellness Companion"
-        description="A private AI wellness companion for general sexual wellness education, service navigation and specialist guidance in English and Tamil. Not a doctor."
+        description="A private AI wellness companion for general sexual wellness education, service navigation and specialist guidance in English, Tamil and Tanglish. Not a doctor."
         path="/ai"
       />
       <PageHero
@@ -38,7 +38,7 @@ export default function AI() {
             AI assistant
           </Badge>
           <span className="inline-flex items-center gap-1.5 font-body text-[9.5px] text-mauve">
-            <Languages className="h-3 w-3 text-lavender" /> English & தமிழ்
+            <Languages className="h-3 w-3 text-lavender" /> English · தமிழ் · Tanglish
           </span>
           <span className="inline-flex items-center gap-1.5 font-body text-[9.5px] text-mauve">
             <LockKeyhole className="h-3 w-3 text-lavender" /> Consent before storage
@@ -65,7 +65,7 @@ export default function AI() {
                     [UserCheck, 'Help identify a specialist category'],
                     [HeartHandshake, 'Offer general communication guidance'],
                     [Clock3, 'Explain how booking and consultations work'],
-                    [Languages, 'Respond in English or Tamil'],
+                    [Languages, 'Respond in English, Tamil or Tanglish'],
                   ].map(([Icon, text]) => {
                     const Component = Icon as typeof Bot;
                     return (
