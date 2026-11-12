@@ -19,7 +19,7 @@ import {
   Video,
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import type { AvailabilitySlot, Doctor } from '@/types';
+import type { AvailabilitySlot } from '@/types';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import { Seo } from '@/components/Seo';
 import { Badge } from '@/components/ui/Badge';
@@ -30,7 +30,7 @@ import { DemoNotice } from '@/components/ui/DemoNotice';
 import { EmptyState, PageLoader, ErrorState } from '@/components/ui/States';
 import { DoctorCard } from '@/components/cards/DoctorCard';
 import { useDoctor } from '@/hooks/useDoctors';
-import { demoDoctors } from '@/data/doctors';
+import { demoDoctors, getDemoStockPortrait } from '@/data/doctors';
 import { NotFound } from './NotFound';
 
 type AvailabilityResponse = {
@@ -106,6 +106,8 @@ export default function DoctorProfile() {
   const bookingHref = (slot?: string) =>
     `/book?doctor=${doctor.slug}&mode=${mode}${slot ? `&slot=${encodeURIComponent(slot)}` : ''}`;
 
+  const stockPortrait = getDemoStockPortrait(doctor);
+  const portraitUrl = stockPortrait?.src ?? doctor.photoUrl;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -141,10 +143,11 @@ export default function DoctorProfile() {
 
           <div className="grid gap-8 lg:grid-cols-[340px_1fr] lg:gap-12">
             <div className="relative overflow-hidden rounded-[28px] border border-white/[0.09] bg-gradient-to-br from-plum to-burgundy/40">
-              {doctor.photoUrl ? (
+              {portraitUrl ? (
                 <img
-                  src={doctor.photoUrl}
-                  alt={`Illustrated fictional portrait of ${doctor.name}`}
+                  src={portraitUrl}
+                  alt={stockPortrait ? 'Stock portrait for a fictional profile' : ''}
+                  style={{ objectPosition: stockPortrait?.position }}
                   className="aspect-[4/4.3] w-full object-cover object-top"
                 />
               ) : (
@@ -535,7 +538,7 @@ export default function DoctorProfile() {
                 <h2 className="font-display text-3xl text-ivory">You may also consider</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {related.map((item) => (
-                    <DoctorCard key={item.id} doctor={item as Doctor} />
+                    <DoctorCard key={item.id} doctor={item} />
                   ))}
                 </div>
               </div>

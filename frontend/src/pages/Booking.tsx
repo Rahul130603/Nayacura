@@ -22,12 +22,11 @@ import {
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useDoctors } from '@/hooks/useDoctors';
-import { getDemoStockPortrait } from '@/data/doctors';
 import { useToast } from '@/components/ui/Toast';
 import { Seo } from '@/components/Seo';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Avatar } from '@/components/ui/Avatar';
+import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
 import { DemoNotice } from '@/components/ui/DemoNotice';
 import { EmptyState, PageLoader } from '@/components/ui/States';
 import { cn, formatCurrency, formatDateTime, formatTime } from '@/lib/utils';
@@ -84,17 +83,6 @@ declare global {
   }
 }
 
-function BookingDoctorAvatar({ doctor }: { doctor: Doctor }) {
-  const portrait = getDemoStockPortrait(doctor);
-  return (
-    <Avatar
-      name={doctor.name}
-      src={portrait?.src ?? doctor.photoUrl}
-      objectPosition={portrait?.position}
-    />
-  );
-}
-
 function Summary({
   doctor,
   mode,
@@ -114,7 +102,7 @@ function Summary({
       {doctor ? (
         <>
           <div className="mt-4 flex items-center gap-3">
-            <BookingDoctorAvatar doctor={doctor} />
+            <DoctorAvatar doctor={doctor} />
             <div className="min-w-0">
               <p className="truncate font-sans text-[12px] font-semibold text-ivory">{doctor.name}</p>
               <p className="truncate font-body text-[9.5px] text-mauve">
@@ -546,7 +534,7 @@ export default function Booking() {
                                   : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]',
                               )}
                             >
-                              <BookingDoctorAvatar doctor={item} />
+                              <DoctorAvatar doctor={item} />
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <p className="font-sans text-[12.5px] font-semibold text-ivory">
@@ -910,12 +898,15 @@ export default function Booking() {
 
                       <div className="mt-6 rounded-[24px] border border-white/[0.08] bg-white/[0.025] p-5 sm:p-6">
                         <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
-                          <div>
-                            <p className="font-sans text-[11px] font-semibold text-ivory">{appointment.doctor.name}</p>
-                            <p className="mt-0.5 font-body text-[9.5px] text-mauve">
-                              {formatDateTime(appointment.startAt, appointment.timezone)} ·{' '}
-                              {appointment.mode === 'ONLINE' ? 'Video' : 'In person'}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <DoctorAvatar doctor={appointment.doctor} size="sm" />
+                            <div>
+                              <p className="font-sans text-[11px] font-semibold text-ivory">{appointment.doctor.name}</p>
+                              <p className="mt-0.5 font-body text-[9.5px] text-mauve">
+                                {formatDateTime(appointment.startAt, appointment.timezone)} ·{' '}
+                                {appointment.mode === 'ONLINE' ? 'Video' : 'In person'}
+                              </p>
+                            </div>
                           </div>
                           <Badge tone="lavender">Held</Badge>
                         </div>
@@ -1017,8 +1008,13 @@ export default function Booking() {
                           </div>
                           <div className="rounded-2xl border border-white/10 bg-midnight/30 p-4">
                             <p className="font-body text-[8.5px] uppercase tracking-[0.15em] text-mauve">Clinician</p>
-                            <p className="mt-1 font-sans text-[12px] text-ivory">{appointment.doctor.name}</p>
-                            <p className="font-body text-[9px] text-mauve">{appointment.doctor.title}</p>
+                            <div className="mt-2 flex items-center gap-2">
+                              <DoctorAvatar doctor={appointment.doctor} size="sm" />
+                              <div>
+                                <p className="font-sans text-[12px] text-ivory">{appointment.doctor.name}</p>
+                                <p className="font-body text-[9px] text-mauve">{appointment.doctor.title}</p>
+                              </div>
+                            </div>
                           </div>
                           <div className="rounded-2xl border border-white/10 bg-midnight/30 p-4">
                             <p className="font-body text-[8.5px] uppercase tracking-[0.15em] text-mauve">Date & time</p>

@@ -35,6 +35,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
+import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
 import { cn, formatCurrency, formatDate, formatDateTime } from '@/lib/utils';
 import type { AdminOverview } from '@/types';
 
@@ -44,6 +45,8 @@ type AdminDoctor = {
   name: string;
   email: string;
   title: string;
+  photoUrl?: string | null;
+  isDemo: boolean;
   city: string;
   status: string;
   verified: boolean;
@@ -602,16 +605,19 @@ export default function AdminDashboard() {
               {doctors.map((doctor) => (
                 <div key={doctor.id} className="rounded-[18px] border border-white/[0.07] bg-white/[0.025] p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-sans text-[11.5px] font-semibold text-ivory">{doctor.name}</p>
-                        <Badge tone={statusTone(doctor.status)}>{doctor.status}</Badge>
-                        <Badge tone="muted">Demo</Badge>
+                    <div className="flex items-start gap-3">
+                      <DoctorAvatar doctor={doctor} size="sm" />
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-sans text-[11.5px] font-semibold text-ivory">{doctor.name}</p>
+                          <Badge tone={statusTone(doctor.status)}>{doctor.status}</Badge>
+                          <Badge tone="muted">Demo</Badge>
+                        </div>
+                        <p className="mt-1 font-body text-[9px] text-mauve">{doctor.title} · {doctor.city} · {doctor.experienceYears} yrs</p>
+                        <p className="mt-1 font-body text-[8.5px] text-mauve/60">
+                          {doctor.specializations.join(' · ')} · {doctor.email}
+                        </p>
                       </div>
-                      <p className="mt-1 font-body text-[9px] text-mauve">{doctor.title} · {doctor.city} · {doctor.experienceYears} yrs</p>
-                      <p className="mt-1 font-body text-[8.5px] text-mauve/60">
-                        {doctor.specializations.join(' · ')} · {doctor.email}
-                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <p className="font-sans text-[10px] text-ivory/70">{formatCurrency(doctor.feePaise)}</p>
@@ -948,9 +954,12 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div className="rounded-xl border border-white/[0.08] p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="font-sans text-[12px] font-semibold text-ivory">{doctorModal.name}</p>
-                  <p className="mt-0.5 font-body text-[9px] text-mauve">{doctorModal.email}</p>
+                <div className="flex items-center gap-2.5">
+                  <DoctorAvatar doctor={doctorModal} size="sm" />
+                  <div>
+                    <p className="font-sans text-[12px] font-semibold text-ivory">{doctorModal.name}</p>
+                    <p className="mt-0.5 font-body text-[9px] text-mauve">{doctorModal.email}</p>
+                  </div>
                 </div>
                 <Badge tone={statusTone(doctorModal.status)}>{doctorModal.status}</Badge>
               </div>

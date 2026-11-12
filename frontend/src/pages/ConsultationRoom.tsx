@@ -28,7 +28,7 @@ import { formatDateTime, formatTime, cn } from '@/lib/utils';
 import { Logo } from '@/components/layout/Logo';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Avatar } from '@/components/ui/Avatar';
+import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
 import { PageLoader, ErrorState } from '@/components/ui/States';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
@@ -378,7 +378,7 @@ export default function ConsultationRoom() {
                     <div className="relative mb-7">
                       <div className="absolute inset-0 -m-8 rounded-full border border-lavender/10" />
                       <div className="absolute inset-0 -m-16 rounded-full border border-rose/[0.06]" />
-                      <Avatar name={appointment.doctor.name} src={appointment.doctor.photoUrl} size="xl" />
+                      <DoctorAvatar doctor={appointment.doctor} size="xl" />
                       <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-4 border-[#0C0812] bg-rose" />
                     </div>
                     <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-lavender">
@@ -465,7 +465,7 @@ export default function ConsultationRoom() {
                     <div className="relative flex h-full w-full flex-col items-center justify-center gap-5 p-6">
                       <div className="absolute h-64 w-64 rounded-full border border-lavender/10 sm:h-96 sm:w-96" />
                       <div className="absolute h-44 w-44 rounded-full border border-rose/10 sm:h-64 sm:w-64" />
-                      <Avatar name={appointment.doctor.name} src={appointment.doctor.photoUrl} size="xl" />
+                      <DoctorAvatar doctor={appointment.doctor} size="xl" />
                       <div className="relative z-10 text-center">
                         <p className="font-display text-3xl text-ivory">{appointment.doctor.name}</p>
                         <p className="mt-1 font-sans text-[10px] text-mauve">{appointment.doctor.title}</p>

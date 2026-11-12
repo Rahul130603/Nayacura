@@ -21,8 +21,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { DemoNotice } from '@/components/ui/DemoNotice';
 import { Reveal } from '@/components/ui/Reveal';
 import { ServiceIcon } from '@/components/ServiceIcon';
-import { DoctorCard } from '@/components/cards/DoctorCard';
-import { demoDoctors } from '@/data/doctors';
+import { demoDoctors, getDemoStockPortrait } from '@/data/doctors';
 import { getService, serviceCategories, servicesByCategory } from '@/data/services';
 import { NotFound } from './NotFound';
 
@@ -43,7 +42,8 @@ export default function ServiceDetail() {
   const specialistSlugs = categorySpecialists[service.categorySlug] || [];
   const specialists = demoDoctors
     .filter((doctor) => doctor.specializations.some((item) => specialistSlugs.includes(item.slug)))
-    .slice(0, 3);
+    .slice(0, 3)
+    .map((doctor) => ({ doctor, portrait: getDemoStockPortrait(doctor) }));
   const bookQuery = specialistSlugs.length ? `?specialization=${specialistSlugs[0]}` : '';
 
   return (
@@ -208,15 +208,17 @@ export default function ServiceDetail() {
                   </div>
                   {specialists.length > 0 && (
                     <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                      {specialists.map((doctor) => (
+                      {specialists.map(({ doctor, portrait }) => (
                         <Link
                           key={doctor.id}
                           to={`/doctors/${doctor.slug}`}
                           className="group rounded-2xl border border-white/[0.08] p-3 transition-colors hover:border-lavender/25"
                         >
                           <img
-                            src={doctor.photoUrl || ''}
+                            src={portrait?.src ?? doctor.photoUrl ?? undefined}
                             alt=""
+                            style={{ objectPosition: portrait?.position }}
+                            loading="lazy"
                             className="aspect-[4/3] w-full rounded-xl object-cover"
                           />
                           <p className="mt-3 font-sans text-[11.5px] font-semibold text-ivory group-hover:text-rose">

@@ -58,7 +58,7 @@ export function PageHero({
   return (
     <section
       className={cn(
-        'relative overflow-hidden bg-midnight pb-16 pt-32 sm:pb-20 sm:pt-40 lg:pb-24 lg:pt-44',
+        'page-hero relative flex min-h-[100svh] items-center overflow-hidden bg-midnight pb-16 pt-32 sm:pb-20 sm:pt-40 lg:pb-24 lg:pt-44',
         backgroundImage && 'pb-[65vw] sm:pb-[53vw] xl:grid xl:min-h-[min(44vw,51rem)] xl:items-center xl:pb-24',
         className,
       )}

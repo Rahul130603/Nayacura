@@ -11,7 +11,6 @@ import {
   BookOpen,
   CalendarCheck2,
   Check,
-  ChevronRight,
   CircleHelp,
   Clock3,
   EyeOff,
@@ -40,10 +39,9 @@ import { Accordion } from '@/components/ui/Accordion';
 import { DoctorCard } from '@/components/cards/DoctorCard';
 import { ArticleCard } from '@/components/cards/ArticleCard';
 import { ServiceIcon } from '@/components/ServiceIcon';
-import { demoDoctors, getDemoStockPortrait } from '@/data/doctors';
+import { demoDoctors } from '@/data/doctors';
 import { articles, featuredArticles } from '@/data/articles';
 import { serviceCategories, servicesByCategory } from '@/data/services';
-import { CinematicHero } from '@/components/hero/CinematicHero';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -82,44 +80,6 @@ const faqs = [
     question: 'Are the doctors and stories on this site real?',
     answer:
       'No. This is a development demo. Clinician profiles, credentials, availability, fees and patient stories are fictional and clearly labelled. Using a real clinician’s identity or a real patient testimonial without verification would be misleading, so we do not.',
-  },
-];
-
-const journeySteps = [
-  {
-    title: 'Explore',
-    kicker: 'Start quietly',
-    description:
-      'Read service pages, browse the journal, or ask Naya a general question. Nothing you read requires an account, and nothing is shared with a clinician until you choose to book.',
-    detail: 'No account needed · general information only',
-  },
-  {
-    title: 'Choose',
-    kicker: 'Find the right fit',
-    description:
-      'Filter by specialisation, language, gender, consultation type and fee. Read how a clinician works before you decide. You can save a profile and return later.',
-    detail: 'Eight demo specialists · transparent demo fees',
-  },
-  {
-    title: 'Book',
-    kicker: 'Decide the shape',
-    description:
-      'Choose a secure video or in-person appointment. Available times are generated from the clinician’s schedule; the server checks for conflicts before confirming your slot.',
-    detail: 'Video or in person · timezone-aware slots',
-  },
-  {
-    title: 'Prepare',
-    kicker: 'Arrive as you are',
-    description:
-      'Share only what you are comfortable sharing. Note anything you want to discuss. A private room and stable connection help for video consultations. You can bring a support person if you choose.',
-    detail: 'Minimal intake details · your consent stays central',
-  },
-  {
-    title: 'Continue',
-    kicker: 'Care beyond the hour',
-    description:
-      'After the consultation, your dashboard can hold follow-up notes, recommendations and documents shared by your clinician. Follow-up care is clinician-specific and never unlimited by default.',
-    detail: 'Follow-up availability is confirmed by your clinician',
   },
 ];
 
@@ -192,91 +152,6 @@ const comparison = {
     ],
   },
 };
-
-function JourneyExplorer() {
-  const [active, setActive] = useState(0);
-  const reduce = useReducedMotion();
-  const step = journeySteps[active];
-
-  return (
-    <div className="mt-12 grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-      <div className="overflow-hidden rounded-[28px] border border-plum/15 bg-white/45">
-        {journeySteps.map((item, index) => (
-          <button
-            key={item.title}
-            type="button"
-            onClick={() => setActive(index)}
-            aria-pressed={active === index}
-            aria-controls="consultation-journey-detail"
-            className={`flex w-full items-center gap-4 border-b border-plum/10 px-4 py-5 text-left transition-colors last:border-b-0 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-burgundy sm:gap-6 sm:px-5 ${
-              active === index ? 'bg-rose/25' : 'hover:bg-lavender/20'
-            }`}
-          >
-            <span
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border font-sans text-[11px] font-semibold transition-colors ${
-                active === index
-                  ? 'border-burgundy bg-burgundy text-ivory'
-                  : 'border-burgundy/30 text-burgundy'
-              }`}
-            >
-              {String(index + 1).padStart(2, '0')}
-            </span>
-            <span className="flex-1">
-              <span
-                className={`block font-display text-2xl transition-colors sm:text-3xl ${
-                  active === index ? 'text-burgundy' : 'text-plum'
-                }`}
-              >
-                {item.title}
-              </span>
-              <span className="mt-1 block font-body text-xs text-plum/75">
-                {item.kicker}
-              </span>
-            </span>
-            <ChevronRight
-              aria-hidden="true"
-              className={`h-4 w-4 shrink-0 transition-all ${
-                active === index ? 'translate-x-1 text-burgundy' : 'text-plum/65'
-              }`}
-            />
-          </button>
-        ))}
-      </div>
-
-      <div
-        id="consultation-journey-detail"
-        aria-live="polite"
-        aria-atomic="true"
-        className="relative overflow-hidden rounded-[28px] border border-plum bg-plum bg-gradient-to-br from-burgundy via-plum to-midnight p-7 sm:p-10"
-      >
-        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full border border-lavender/10" />
-        <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full border border-rose/10" />
-        <motion.div
-          key={active}
-          initial={reduce ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="relative z-10 flex h-full min-h-[320px] flex-col"
-        >
-          <div className="flex items-center gap-2 font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-lavender">
-            <span className="h-px w-8 bg-lavender/50" />
-            {step.kicker}
-          </div>
-          <h3 className="mt-8 font-display text-[clamp(2rem,4vw,3.3rem)] leading-[1.02] text-ivory">
-            {step.title}
-          </h3>
-          <p className="mt-5 max-w-md pb-6 font-body text-[14px] leading-[1.85] text-ivory">
-            {step.description}
-          </p>
-          <div className="mt-auto flex items-center gap-2.5 border-t border-white/[0.08] pt-5">
-            <Check className="h-4 w-4 shrink-0 text-rose" />
-            <p className="font-body text-xs text-ivory/90">{step.detail}</p>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
 
 function OnlineInPerson() {
   const [mode, setMode] = useState<'online' | 'inPerson'>('online');
@@ -459,7 +334,16 @@ export default function Home() {
 
       {/* 1 — Cinematic hero */}
       <section className="hero-section relative min-h-[100svh] overflow-hidden bg-midnight pt-28 sm:pt-36">
-        <div className="pointer-events-none absolute inset-0 bg-hero-radial" />
+        <img
+          src="/images/art/home-hero-heartbound-couple.png"
+          alt=""
+          width={1672}
+          height={941}
+          fetchPriority="high"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[62%_center] opacity-100 sm:object-right"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-midnight/75 via-midnight/25 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-midnight/35 via-transparent to-midnight/25" />
         <div className="pointer-events-none absolute -left-40 top-1/3 h-[500px] w-[500px] rounded-full bg-burgundy/20 blur-[130px]" />
         <div className="pointer-events-none absolute right-0 top-0 h-full w-[55%] bg-[radial-gradient(ellipse_at_60%_40%,rgba(110,53,164,0.18),transparent_65%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-midnight to-transparent z-10" />
@@ -555,7 +439,7 @@ export default function Home() {
               </motion.div>
             </div>
 
-            <CinematicHero />
+
           </div>
 
           <div className="relative z-20 flex items-center justify-between pb-6 pt-1">
@@ -581,7 +465,7 @@ export default function Home() {
       </section>
 
       {/* 2 — Brand introduction */}
-      <section className="relative overflow-hidden border-t border-white/[0.06] bg-midnight py-20 sm:py-28 lg:py-36">
+      <section className="relative overflow-hidden border-t border-white/[0.06] bg-midnight py-14 sm:py-20 lg:py-24">
         <div className="container-naya">
           <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-24">
             <div>
@@ -634,7 +518,7 @@ export default function Home() {
       </section>
 
       {/* 3 — Trust and privacy promise */}
-      <section className="privacy-section relative overflow-hidden bg-ivory py-20 text-plum sm:py-28">
+      <section className="privacy-section relative overflow-hidden bg-ivory py-14 text-plum sm:py-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_15%,rgba(232,160,183,0.28),transparent_42%)]" />
         <div className="container-naya relative z-10">
           <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
@@ -700,7 +584,7 @@ export default function Home() {
       </section>
 
       {/* 4 — About Nayacura */}
-      <section className="relative overflow-hidden bg-plum py-20 sm:py-28 lg:py-36">
+      <section className="relative overflow-hidden bg-plum py-14 sm:py-20 lg:py-24">
         <div className="pointer-events-none absolute -right-40 top-10 h-[500px] w-[500px] rounded-full bg-royal/15 blur-[130px]" />
         <div className="container-naya relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
@@ -776,7 +660,7 @@ export default function Home() {
       </section>
 
       {/* 5 — Sexual wellness awareness */}
-      <section className="awareness-section relative overflow-hidden border-y border-white/[0.06] bg-[#551732] bg-[linear-gradient(90deg,#551732_34%,#501530_54%,#48132c_74%,#3d0f27_88%)] py-20 sm:py-28">
+      <section className="awareness-section relative overflow-hidden border-y border-white/[0.06] bg-[#551732] bg-[linear-gradient(90deg,#551732_34%,#501530_54%,#48132c_74%,#3d0f27_88%)] py-14 sm:py-20">
         <div className="container-naya relative z-10">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2.45fr)] lg:items-center lg:gap-8 xl:gap-12">
             <div>
@@ -837,7 +721,7 @@ export default function Home() {
       </section>
 
       {/* 6 — Specialized services */}
-      <section className="relative bg-midnight py-20 sm:py-28 lg:py-36">
+      <section className="relative bg-midnight py-14 sm:py-20 lg:py-24">
         <div className="container-naya">
           <SectionHeading
             eyebrow="Our specialised care"
@@ -913,7 +797,7 @@ export default function Home() {
       </section>
 
       {/* 7 — Men's wellness */}
-      <section className="relative overflow-hidden bg-plum py-20 sm:py-28">
+      <section className="relative overflow-hidden bg-plum py-14 sm:py-20">
         <div className="container-naya">
           <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20">
             <Reveal className="order-2 lg:order-1">
@@ -963,7 +847,7 @@ export default function Home() {
       </section>
 
       {/* 8 — Women's wellness */}
-      <section className="relative overflow-hidden bg-ivory py-20 text-plum sm:py-28">
+      <section className="relative overflow-hidden bg-ivory py-14 text-plum sm:py-20">
         <div className="pointer-events-none absolute -left-32 top-1/3 h-[440px] w-[440px] rounded-full bg-rose/20 blur-[110px]" />
         <div className="container-naya relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
@@ -1019,14 +903,16 @@ export default function Home() {
       {/* 9 — Couples and relationship counselling */}
       <section className="relative min-h-[640px] overflow-hidden bg-midnight">
         <img
-          src="/images/art/connection.svg"
+          src="/images/art/couples-counselling-lounge.png"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-70"
+          width={1857}
+          height={847}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[300px] w-full object-cover object-right lg:inset-0 lg:h-full lg:object-[right_65%]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-midnight via-midnight/80 to-midnight/25" />
-        <div className="absolute inset-0 bg-gradient-to-t from-midnight via-transparent to-midnight/60" />
-        <div className="container-naya relative z-10 flex min-h-[640px] items-center py-20">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[300px] bg-gradient-to-b from-midnight via-transparent to-midnight/45 lg:inset-0 lg:h-auto lg:bg-gradient-to-r lg:from-midnight/90 lg:via-midnight/40 lg:to-transparent" />
+        <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-midnight/80 via-transparent to-midnight/25 lg:block" />
+        <div className="container-naya relative z-10 flex min-h-[640px] items-center pb-64 pt-20 lg:py-20">
           <div className="max-w-2xl">
             <Reveal>
               <p className="eyebrow mb-6">Couples & relationship counselling</p>
@@ -1065,7 +951,7 @@ export default function Home() {
       </section>
 
       {/* 10 — Meet our specialists */}
-      <section className="relative bg-midnight py-20 sm:py-28 lg:py-32">
+      <section className="relative bg-midnight py-14 sm:py-20 lg:py-24">
         <div className="container-naya">
           <SectionHeading
             eyebrow="Meet our demo specialists"
@@ -1080,7 +966,7 @@ export default function Home() {
           <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {demoDoctors.slice(0, 4).map((doctor, index) => (
               <Reveal key={doctor.id} delay={index * 0.06}>
-                <DoctorCard doctor={doctor} stockPortrait={getDemoStockPortrait(doctor)} />
+                <DoctorCard doctor={doctor} />
               </Reveal>
             ))}
           </div>
@@ -1100,7 +986,7 @@ export default function Home() {
       </section>
 
       {/* 11 — How consultations work */}
-      <section className="relative overflow-hidden border-y border-white/[0.06] bg-plum py-20 sm:py-28">
+      <section className="relative overflow-hidden border-y border-white/[0.06] bg-plum py-14 sm:py-20">
         <div className="container-naya">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
             <div className="lg:sticky lg:top-28 lg:self-start">
@@ -1157,7 +1043,7 @@ export default function Home() {
       </section>
 
       {/* 12 — Online vs in-person */}
-      <section className="relative bg-midnight py-20 sm:py-28">
+      <section className="relative bg-midnight py-14 sm:py-20">
         <div className="container-naya">
           <SectionHeading
             eyebrow="Choose your setting"
@@ -1172,25 +1058,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 13 — Interactive consultation journey */}
-      <section className="relative overflow-hidden bg-ivory py-20 text-plum sm:py-28">
-        <div className="container-naya relative z-10">
-          <SectionHeading
-            tone="light"
-            eyebrow="Your consultation journey"
-            title={
-              <>
-                From a private question to a <span className="font-display italic text-burgundy">clear next step.</span>
-              </>
-            }
-            description="Select any stage to see what happens and what remains in your control. The journey is designed to be transparent before you spend a rupee or share a detail."
-          />
-          <JourneyExplorer />
-        </div>
-      </section>
-
       {/* 14 — Benefits of professional support */}
-      <section className="relative bg-midnight py-20 sm:py-28 lg:py-32">
+      <section className="relative bg-midnight py-14 sm:py-20 lg:py-24">
         <div className="container-naya">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
             <div>
@@ -1239,7 +1108,7 @@ export default function Home() {
       </section>
 
       {/* 15 — AI wellness assistant introduction */}
-      <section className="relative overflow-hidden bg-plum py-20 sm:py-28">
+      <section className="relative overflow-hidden bg-plum py-14 sm:py-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(110,53,164,0.2),transparent_50%)]" />
         <div className="container-naya relative z-10">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
@@ -1296,7 +1165,7 @@ export default function Home() {
       </section>
 
       {/* 16 — Educational resources */}
-      <section className="relative bg-midnight py-20 sm:py-28">
+      <section className="relative bg-midnight py-14 sm:py-20">
         <div className="container-naya">
           <SectionHeading
             eyebrow="The wellness journal"
@@ -1347,7 +1216,7 @@ export default function Home() {
       </section>
 
       {/* 17 — Illustrative stories */}
-      <section className="relative overflow-hidden border-y border-white/[0.06] bg-burgundy/[0.35] py-20 sm:py-28">
+      <section className="relative overflow-hidden border-y border-white/[0.06] bg-burgundy/[0.35] py-14 sm:py-20">
         <div className="container-naya">
           <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <Reveal>
@@ -1406,7 +1275,7 @@ export default function Home() {
       </section>
 
       {/* 18 — FAQ */}
-      <section className="relative bg-midnight py-20 sm:py-28 lg:py-32">
+      <section className="relative bg-midnight py-14 sm:py-20 lg:py-24">
         <div className="container-editorial">
           <div className="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
             <div className="lg:sticky lg:top-28 lg:self-start">
@@ -1443,7 +1312,7 @@ export default function Home() {
       </section>
 
       {/* 19 — Final booking CTA */}
-      <section className="relative overflow-hidden bg-midnight pb-20 sm:pb-28">
+      <section className="relative overflow-hidden bg-midnight pb-14 sm:pb-20">
         <div className="container-naya">
           <div className="relative overflow-hidden rounded-[34px] border border-lavender/15 bg-gradient-to-br from-burgundy via-plum to-royal/70 px-6 py-16 text-center sm:px-12 sm:py-24">
             <div className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full border border-white/10" />

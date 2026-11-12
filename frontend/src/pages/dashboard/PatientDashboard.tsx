@@ -37,7 +37,7 @@ import { DashboardShell, type DashboardNavItem } from '@/components/layout/Dashb
 import { Seo } from '@/components/Seo';
 import { Badge } from '@/components/ui/Badge';
 import { Button, ButtonLink } from '@/components/ui/Button';
-import { Avatar } from '@/components/ui/Avatar';
+import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
@@ -232,9 +232,12 @@ function AppointmentRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <p className="font-sans text-[12px] font-semibold text-ivory">{appointment.doctor.name}</p>
-              <p className="mt-0.5 font-body text-[9.5px] text-mauve">{appointment.doctor.title}</p>
+            <div className="flex items-center gap-2.5">
+              <DoctorAvatar doctor={appointment.doctor} size="sm" />
+              <div>
+                <p className="font-sans text-[12px] font-semibold text-ivory">{appointment.doctor.name}</p>
+                <p className="mt-0.5 font-body text-[9.5px] text-mauve">{appointment.doctor.title}</p>
+              </div>
             </div>
             <span className="font-mono text-[8px] text-mauve/50">{appointment.bookingId}</span>
           </div>
@@ -924,11 +927,7 @@ export default function PatientDashboard() {
                   </div>
                   {overview?.upcoming[0] && (
                     <div className="relative z-10 mt-5 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                      <Avatar
-                        name={overview.upcoming[0].doctor.name}
-                        src={overview.upcoming[0].doctor.photoUrl}
-                        size="sm"
-                      />
+                      <DoctorAvatar doctor={overview.upcoming[0].doctor} size="sm" />
                       <span className="font-body text-[9.5px] text-ivory/60">
                         {overview.upcoming[0].doctor.title}
                       </span>
@@ -989,11 +988,14 @@ export default function PatientDashboard() {
                           key={appointment.id}
                           className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] px-3.5 py-3"
                         >
-                          <div>
-                            <p className="font-sans text-[10.5px] text-ivory">{appointment.doctor.name}</p>
-                            <p className="mt-0.5 font-body text-[9px] text-mauve">
-                              {formatDate(appointment.startAt)} · {statusLabels[appointment.status]}
-                            </p>
+                          <div className="flex items-center gap-2.5">
+                            <DoctorAvatar doctor={appointment.doctor} size="sm" />
+                            <div>
+                              <p className="font-sans text-[10.5px] text-ivory">{appointment.doctor.name}</p>
+                              <p className="mt-0.5 font-body text-[9px] text-mauve">
+                                {formatDate(appointment.startAt)} · {statusLabels[appointment.status]}
+                              </p>
+                            </div>
                           </div>
                           <button
                             type="button"
@@ -1783,11 +1785,14 @@ export default function PatientDashboard() {
       >
         {cancelTarget && (
           <div className="space-y-4">
-            <div className="rounded-xl border border-white/[0.08] p-3.5">
-              <p className="font-sans text-[11px] font-semibold text-ivory">{cancelTarget.doctor.name}</p>
-              <p className="mt-1 font-body text-[9px] text-mauve">
-                {formatDateTime(cancelTarget.startAt, cancelTarget.timezone)}
-              </p>
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/[0.08] p-3.5">
+              <DoctorAvatar doctor={cancelTarget.doctor} size="sm" />
+              <div>
+                <p className="font-sans text-[11px] font-semibold text-ivory">{cancelTarget.doctor.name}</p>
+                <p className="mt-1 font-body text-[9px] text-mauve">
+                  {formatDateTime(cancelTarget.startAt, cancelTarget.timezone)}
+                </p>
+              </div>
             </div>
             <div>
               <label htmlFor="cancel-reason" className="label-premium">Reason (optional)</label>

@@ -21,7 +21,6 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { DemoNotice } from '@/components/ui/DemoNotice';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { Badge } from '@/components/ui/Badge';
-import { getDemoStockPortrait } from '@/data/doctors';
 import { useDoctorFilters, useDoctors } from '@/hooks/useDoctors';
 import type { DoctorFilters } from '@/types';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -556,7 +555,7 @@ export default function Doctors() {
                     className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
                   >
                     {doctors.map((doctor) => (
-                      <DoctorCard key={doctor.id} doctor={doctor} stockPortrait={getDemoStockPortrait(doctor)} />
+                      <DoctorCard key={doctor.id} doctor={doctor} />
                     ))}
                   </motion.div>
                 </>

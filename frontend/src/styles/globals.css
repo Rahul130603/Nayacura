@@ -53,6 +53,10 @@ body {
   body .site-nav__about {
     display: block;
   }
+
+  body .page-hero {
+    min-height: 125svh;
+  }
 }
 
 @media (min-width: 1024px) and (max-height: 700px) and (hover: hover) and (pointer: fine) {

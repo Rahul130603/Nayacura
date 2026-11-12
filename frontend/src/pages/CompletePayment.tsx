@@ -14,6 +14,7 @@ import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Seo } from '@/components/Seo';
 import { Badge } from '@/components/ui/Badge';
+import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { PageLoader, ErrorState } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
@@ -171,9 +172,12 @@ export default function CompletePayment() {
                 Payment {appointment.payment?.status === 'DEMO_PAID' ? 'recorded (demo)' : 'confirmed'}
               </p>
               <h1 className="display mt-3 text-4xl">The slot is yours.</h1>
-              <p className="mt-3 font-body text-[12px] leading-relaxed text-mauve">
-                {appointment.doctor.name} · {formatDateTime(appointment.startAt, appointment.timezone)}
-              </p>
+              <div className="mt-3 flex items-center justify-center gap-2.5">
+                <DoctorAvatar doctor={appointment.doctor} size="sm" />
+                <p className="font-body text-[12px] leading-relaxed text-mauve">
+                  {appointment.doctor.name} · {formatDateTime(appointment.startAt, appointment.timezone)}
+                </p>
+              </div>
               <div className="mt-5 rounded-xl border border-white/10 bg-midnight/30 p-4 text-left">
                 <p className="font-body text-[8px] uppercase tracking-[0.15em] text-mauve">Booking ID</p>
                 <p className="mt-1 font-mono text-sm text-ivory">{appointment.bookingId}</p>
@@ -235,9 +239,12 @@ export default function CompletePayment() {
 
             <div className="mt-8 rounded-[26px] border border-white/[0.08] bg-white/[0.025] p-6">
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/[0.08] pb-4">
-                <div>
-                  <p className="font-sans text-[12px] font-semibold text-ivory">{appointment.doctor.name}</p>
-                  <p className="mt-1 font-body text-[9.5px] text-mauve">{appointment.doctor.title}</p>
+                <div className="flex items-center gap-2.5">
+                  <DoctorAvatar doctor={appointment.doctor} size="sm" />
+                  <div>
+                    <p className="font-sans text-[12px] font-semibold text-ivory">{appointment.doctor.name}</p>
+                    <p className="mt-1 font-body text-[9.5px] text-mauve">{appointment.doctor.title}</p>
+                  </div>
                 </div>
                 <Badge tone="rose">Awaiting payment</Badge>
               </div>

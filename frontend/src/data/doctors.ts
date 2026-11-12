@@ -11,8 +11,14 @@ const demoStockPortraits: Partial<Record<string, { src: string; position?: strin
   'vikram-nair': { src: '/images/portraits/vikram-demo-stock.jpg', position: 'center 14%' },
 };
 
-export function getDemoStockPortrait(doctor: Pick<Doctor, 'isDemo' | 'slug'>) {
-  return doctor.isDemo ? demoStockPortraits[doctor.slug] : undefined;
+export function getDemoStockPortrait(doctor: Pick<Doctor, 'slug'> & Partial<Pick<Doctor, 'isDemo' | 'photoUrl'>>) {
+  const portrait = demoStockPortraits[doctor.slug];
+  if (!portrait || doctor.isDemo === false) return undefined;
+  if (doctor.isDemo) return portrait;
+
+  // Older appointment responses identify demo doctors by their seeded avatar.
+  const demo = getDemoDoctor(doctor.slug);
+  return doctor.photoUrl && doctor.photoUrl === demo?.photoUrl ? portrait : undefined;
 }
 
 /**

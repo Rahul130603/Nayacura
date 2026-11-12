@@ -87,6 +87,7 @@ adminRouter.get(
         name: doctor.user.name,
         email: doctor.user.email,
         title: doctor.title,
+        photoUrl: doctor.photoUrl,
         city: doctor.city,
         status: doctor.status,
         verified: doctor.verified,

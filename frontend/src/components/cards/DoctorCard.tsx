@@ -5,19 +5,19 @@ import { cn, formatDate } from '@/lib/utils';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
+import { getDemoStockPortrait } from '@/data/doctors';
 
 export function DoctorCard({
   doctor,
   className,
   priority,
-  stockPortrait,
 }: {
   doctor: Doctor;
   className?: string;
   priority?: boolean;
-  stockPortrait?: { src: string; position?: string };
 }) {
   const next = doctor.nextAvailable;
+  const stockPortrait = getDemoStockPortrait(doctor);
   const portraitUrl = stockPortrait?.src ?? doctor.photoUrl;
 
   return (

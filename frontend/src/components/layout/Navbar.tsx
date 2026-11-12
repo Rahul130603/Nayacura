@@ -86,6 +86,9 @@ export function Navbar() {
       }
     }
     function onClick(event: MouseEvent) {
+      if (megaRef.current && !megaRef.current.contains(event.target as Node)) {
+        setMegaOpen(false);
+      }
       if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
         setAccountOpen(false);
       }
@@ -125,7 +128,7 @@ export function Navbar() {
             <Logo className="relative z-10" />
 
             <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-              <div className="relative" ref={megaRef}>
+              <div className="relative" ref={megaRef} onMouseLeave={() => setMegaOpen(false)}>
                 <button
                   type="button"
                   aria-expanded={megaOpen}
@@ -142,6 +145,70 @@ export function Navbar() {
                     className={cn('h-3.5 w-3.5 transition-transform', megaOpen && 'rotate-180')}
                   />
                 </button>
+                <AnimatePresence>
+                  {megaOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute left-0 top-full z-30 hidden w-[min(920px,68vw)] pt-5 lg:block"
+                    >
+                      <div className="glass-strong grid grid-cols-[1.6fr_1fr] overflow-hidden rounded-[28px] p-3">
+                        <div className="grid grid-cols-2 gap-1 p-2">
+                          {serviceCategories.map((category) => (
+                            <Link
+                              key={category.slug}
+                              to={`/services?category=${category.slug}`}
+                              className="group rounded-2xl p-4 transition-colors hover:bg-white/[0.055]"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="font-sans text-[13px] font-semibold text-ivory">
+                                  {category.name}
+                                </p>
+                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-mauve transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-rose" />
+                              </div>
+                              <p className="mt-2 font-body text-[11.5px] leading-relaxed text-mauve">
+                                {category.tagline}
+                              </p>
+                            </Link>
+                          ))}
+                          <div className="col-span-2 mt-1 flex items-center justify-between border-t border-white/[0.07] px-4 pt-4">
+                            <p className="font-body text-[11px] text-mauve">
+                              Not sure where to begin? Naya AI can guide you.
+                            </p>
+                            <Link
+                              to="/services"
+                              className="font-sans text-[11px] font-semibold text-lavender hover:text-rose"
+                            >
+                              View all 26 services →
+                            </Link>
+                          </div>
+                        </div>
+                        <div className="relative m-1 hidden overflow-hidden rounded-[22px] border border-lavender/10 bg-gradient-to-br from-burgundy/40 via-plum to-royal/25 p-6 lg:flex lg:flex-col lg:justify-between">
+                          <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full border border-rose/20" />
+                          <div className="absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-royal/20 blur-[50px]" />
+                          <div className="relative">
+                            <Heart className="h-5 w-5 text-rose" />
+                            <p className="mt-10 font-display text-[27px] leading-[1.1] text-ivory">
+                              Care that begins with being heard.
+                            </p>
+                            <p className="mt-3 font-body text-[11.5px] leading-relaxed text-mauve">
+                              Every specialist on Nayacura starts with consent, privacy and your comfort —
+                              not a checklist.
+                            </p>
+                          </div>
+                          <Link
+                            to="/how-it-works"
+                            className="relative mt-8 inline-flex items-center gap-2 font-sans text-[11px] font-semibold text-lavender"
+                          >
+                            How consultations work <ArrowUpRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               {primaryLinks.map((link) => (
                 <NavLink
@@ -267,71 +334,6 @@ export function Navbar() {
               </button>
             </div>
           </div>
-
-          <AnimatePresence>
-            {megaOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="glass-strong absolute left-1/2 top-[calc(100%-6px)] hidden w-[min(920px,calc(100vw-48px))] -translate-x-1/2 overflow-hidden rounded-[28px] p-3 lg:grid lg:grid-cols-[1.6fr_1fr]"
-                onMouseEnter={() => setMegaOpen(true)}
-                onMouseLeave={() => setMegaOpen(false)}
-              >
-                <div className="grid grid-cols-2 gap-1 p-2">
-                  {serviceCategories.map((category) => (
-                    <Link
-                      key={category.slug}
-                      to={`/services?category=${category.slug}`}
-                      className="group rounded-2xl p-4 transition-colors hover:bg-white/[0.055]"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-sans text-[13px] font-semibold text-ivory">
-                          {category.name}
-                        </p>
-                        <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-mauve transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-rose" />
-                      </div>
-                      <p className="mt-2 font-body text-[11.5px] leading-relaxed text-mauve">
-                        {category.tagline}
-                      </p>
-                    </Link>
-                  ))}
-                  <div className="col-span-2 mt-1 flex items-center justify-between border-t border-white/[0.07] px-4 pt-4">
-                    <p className="font-body text-[11px] text-mauve">
-                      Not sure where to begin? Naya AI can guide you.
-                    </p>
-                    <Link
-                      to="/services"
-                      className="font-sans text-[11px] font-semibold text-lavender hover:text-rose"
-                    >
-                      View all 26 services →
-                    </Link>
-                  </div>
-                </div>
-                <div className="relative m-1 hidden overflow-hidden rounded-[22px] border border-lavender/10 bg-gradient-to-br from-burgundy/40 via-plum to-royal/25 p-6 lg:flex lg:flex-col lg:justify-between">
-                  <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full border border-rose/20" />
-                  <div className="absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-royal/20 blur-[50px]" />
-                  <div className="relative">
-                    <Heart className="h-5 w-5 text-rose" />
-                    <p className="mt-10 font-display text-[27px] leading-[1.1] text-ivory">
-                      Care that begins with being heard.
-                    </p>
-                    <p className="mt-3 font-body text-[11.5px] leading-relaxed text-mauve">
-                      Every specialist on Nayacura starts with consent, privacy and your comfort —
-                      not a checklist.
-                    </p>
-                  </div>
-                  <Link
-                    to="/how-it-works"
-                    className="relative mt-8 inline-flex items-center gap-2 font-sans text-[11px] font-semibold text-lavender"
-                  >
-                    How consultations work <ArrowUpRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </header>
 
