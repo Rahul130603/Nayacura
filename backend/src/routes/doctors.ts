@@ -168,6 +168,7 @@ doctorsRouter.get(
       throw new ValidationError({ mode: ['This clinician does not offer in-person consultations.'] });
     }
     const days = await getAvailability(doctor, mode, Number(req.query.days) || 21);
+    res.set('Cache-Control', 'no-store');
     res.json({
       days,
       timezone: doctor.timezone,

@@ -200,13 +200,9 @@ export function serializePayment(payment: {
 
 export function serializeAppointment(appointment: AppointmentFull, viewer: 'PATIENT' | 'DOCTOR') {
   const canJoin =
-    viewer === 'PATIENT'
-      ? ['CONFIRMED', 'IN_PROGRESS'].includes(appointment.status) &&
-        appointment.mode === 'ONLINE' &&
-        withinJoinWindow(appointment.startAt, appointment.endAt)
-      : ['CONFIRMED', 'IN_PROGRESS'].includes(appointment.status) &&
-        appointment.mode === 'ONLINE' &&
-        withinJoinWindow(appointment.startAt, appointment.endAt);
+    ['CONFIRMED', 'IN_PROGRESS'].includes(appointment.status) &&
+    appointment.mode === 'ONLINE' &&
+    withinJoinWindow(appointment.startAt, appointment.endAt);
 
   return {
     id: appointment.id,

@@ -8,7 +8,6 @@ import { useAuth } from '@/context/AuthContext';
 import { safeNext } from '@/lib/utils';
 import type { Role } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/Toast';
 
 const schema = z.object({
@@ -16,6 +15,12 @@ const schema = z.object({
   password: z.string().min(1, 'Please enter your password.'),
 });
 type FormValues = z.infer<typeof schema>;
+
+const loginPages = [
+  { role: 'PATIENT', label: 'Client', to: '/login' },
+  { role: 'DOCTOR', label: 'Doctor', to: '/doctor/login' },
+  { role: 'ADMIN', label: 'Admin', to: '/admin/login' },
+] as const;
 
 const portalConfig: Record<
   Role,
@@ -25,8 +30,6 @@ const portalConfig: Record<
     accent: string;
     copy: string;
     demoEmail: string;
-    dashboard: string;
-    companion: { label: string; to: string };
     notice: string;
   }
 > = {
@@ -36,8 +39,6 @@ const portalConfig: Record<
     accent: 'You set the pace.',
     copy: 'Sign in to view appointments, secure consultation rooms, documents, prescriptions and your Naya conversations.',
     demoEmail: 'patient@nayacura.demo',
-    dashboard: '/dashboard',
-    companion: { label: 'Professional sign in', to: '/doctor/login' },
     notice: 'Patient accounts can see only their own records.',
   },
   DOCTOR: {
@@ -46,8 +47,6 @@ const portalConfig: Record<
     accent: 'Verified accounts only.',
     copy: 'Access today’s appointments, availability, consultation rooms and clinical records for your own patients.',
     demoEmail: 'doctor@nayacura.demo',
-    dashboard: '/doctor',
-    companion: { label: 'Patient sign in', to: '/login' },
     notice: 'Clinical tools require verified professional status.',
   },
   ADMIN: {
@@ -56,8 +55,6 @@ const portalConfig: Record<
     accent: 'Least privilege access.',
     copy: 'Credential workflows, platform operations, payment records and audit events. Clinical notes are restricted by default.',
     demoEmail: 'admin@nayacura.demo',
-    dashboard: '/admin',
-    companion: { label: 'Patient sign in', to: '/login' },
     notice: 'Administrators do not automatically receive clinical notes.',
   },
 };
@@ -118,21 +115,27 @@ export function LoginPortal({ role }: { role: Role }) {
 
   return (
     <div>
-      <div className="mb-7 flex flex-wrap items-center gap-2">
-        <Badge tone={role === 'PATIENT' ? 'rose' : role === 'DOCTOR' ? 'lavender' : 'burgundy'}>
-          {role === 'PATIENT' ? 'Patient' : role === 'DOCTOR' ? 'Clinician' : 'Administrator'}
-        </Badge>
-        <span className="font-body text-[9px] text-mauve">Development demo</span>
-      </div>
-      <p className="eyebrow mb-4">{config.eyebrow}</p>
-      <h1 className="display text-[clamp(2.7rem,5vw,4.1rem)]">
+      <nav aria-label="Choose sign-in portal" className="mb-4 grid grid-cols-3 gap-2">
+        {loginPages.map((page) => (
+          <Link
+            key={page.role}
+            to={page.to}
+            aria-current={page.role === role ? 'page' : undefined}
+            className="flex min-h-11 items-center justify-center rounded-xl border border-white/10 px-2 text-center font-sans text-xs font-semibold text-ivory/75 transition-colors hover:border-lavender/50 hover:text-ivory aria-[current=page]:border-lavender/60 aria-[current=page]:bg-lavender/15 aria-[current=page]:text-ivory"
+          >
+            {page.label}
+          </Link>
+        ))}
+      </nav>
+      <p className="eyebrow mb-2">{config.eyebrow}</p>
+      <h1 className="display text-[clamp(1.8rem,3.5vw,2.45rem)]">
         {config.title} <span className="display-soft">{config.accent}</span>
       </h1>
-      <p className="mt-4 font-body text-[12.5px] leading-[1.8] text-mauve">{config.copy}</p>
+      <p className="mt-2 font-body text-xs leading-relaxed text-mauve">{config.copy}</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-2.5" noValidate>
         {error && (
-          <div role="alert" className="rounded-xl border border-rose/25 bg-burgundy/25 px-4 py-3">
+          <div role="alert" className="rounded-xl border border-rose/25 bg-burgundy/25 px-3 py-2">
             <p className="font-body text-[11px] leading-relaxed text-ivory/75">{error}</p>
           </div>
         )}
@@ -144,7 +147,7 @@ export function LoginPortal({ role }: { role: Role }) {
             id={`${role}-email`}
             type="email"
             autoComplete="email"
-            className="input-premium"
+            className="input-premium min-h-11 py-2"
             placeholder="you@example.com"
             {...register('email')}
           />
@@ -167,7 +170,7 @@ export function LoginPortal({ role }: { role: Role }) {
               id={`${role}-password`}
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              className="input-premium pr-11"
+              className="input-premium min-h-11 py-2 pr-11"
               placeholder="Your password"
               {...register('password')}
             />
@@ -183,12 +186,12 @@ export function LoginPortal({ role }: { role: Role }) {
           {errors.password && <p className="mt-1.5 font-body text-[10px] text-rose">{errors.password.message}</p>}
         </div>
 
-        <Button type="submit" size="lg" loading={isSubmitting} className="w-full" arrow>
+        <Button type="submit" loading={isSubmitting} className="min-h-11 w-full" arrow>
           Sign in securely
         </Button>
       </form>
 
-      <div className="mt-5 flex items-start gap-3 rounded-2xl border border-lavender/15 bg-lavender/[0.04] p-3.5">
+      <div className="mt-3 flex items-start gap-3 rounded-2xl border border-lavender/15 bg-lavender/[0.04] p-2.5">
         <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-lavender" />
         <div className="min-w-0 flex-1">
           <p className="font-sans text-[10px] font-semibold text-ivory">Demo account</p>
@@ -205,40 +208,21 @@ export function LoginPortal({ role }: { role: Role }) {
         </button>
       </div>
 
-      {role === 'PATIENT' ? (
-        <p className="mt-6 text-center font-body text-[11px] text-mauve">
+      {role === 'PATIENT' && (
+        <p className="mt-3 text-center font-body text-[11px] text-mauve">
           New to Nayacura?{' '}
           <Link to="/register" className="font-sans font-semibold text-lavender hover:text-rose">
             Create a private account <ArrowRight className="inline h-3 w-3" />
           </Link>
         </p>
-      ) : (
-        <p className="mt-6 text-center font-body text-[11px] text-mauve">
-          Not a {role === 'DOCTOR' ? 'clinician' : 'administrator'}?{' '}
-          <Link to="/login" className="font-sans font-semibold text-lavender hover:text-rose">
-            Patient sign in
-          </Link>
-        </p>
       )}
 
-      <div className="mt-7 flex flex-col gap-2 border-t border-white/[0.07] pt-5">
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/[0.07] pt-2">
         <p className="flex items-center gap-1.5 font-body text-[9px] text-mauve/60">
           <ShieldCheck className="h-3 w-3 shrink-0 text-lavender" />
           {config.notice}
         </p>
         <div className="flex flex-wrap items-center gap-4">
-          <Link
-            to={config.companion.to}
-            className="font-body text-[9.5px] text-mauve transition-colors hover:text-ivory"
-          >
-            {config.companion.label}
-          </Link>
-          <Link
-            to="/admin/login"
-            className="font-body text-[9.5px] text-mauve/50 transition-colors hover:text-ivory"
-          >
-            Admin access
-          </Link>
           <span className="inline-flex items-center gap-1 font-body text-[9px] text-mauve/40">
             <LockKeyhole className="h-2.5 w-2.5" /> Sessions expire
           </span>

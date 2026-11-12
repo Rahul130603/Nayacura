@@ -756,7 +756,7 @@ appointmentsRouter.get(
     }
 
     const roomName = appointment.consultation.roomName;
-    if (env.livekitConfigured && !env.isDemo) {
+    if (env.livekitConfigured) {
       try {
         const roomService = new RoomServiceClient(
           env.LIVEKIT_URL as string,

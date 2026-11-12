@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { prisma } from '../config/prisma';
+import { env } from '../config/env';
 import type { DoctorAvailability, DoctorProfile } from '@prisma/client';
 
 export type Slot = {
@@ -25,22 +26,20 @@ function modeAllowed(windowMode: string, requested: 'ONLINE' | 'IN_PERSON') {
   return windowMode === 'BOTH' || windowMode === requested;
 }
 
-async function bookedKeys(doctorId: string, from: DateTime, to: DateTime) {
+async function bookedIntervals(doctorId: string, from: DateTime, to: DateTime) {
   const now = new Date();
-  const appointments = await prisma.appointment.findMany({
+  return prisma.appointment.findMany({
     where: {
       doctorId,
-      startAt: { gte: from.toUTC().toJSDate(), lt: to.toUTC().toJSDate() },
+      startAt: { lt: to.toUTC().toJSDate() },
+      endAt: { gt: from.toUTC().toJSDate() },
       OR: [
         { status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
         { status: 'PENDING_PAYMENT', holdExpiresAt: { gt: now } },
       ],
     },
-    select: { startAt: true },
+    select: { startAt: true, endAt: true },
   });
-  return new Set(
-    appointments.map((appointment) => DateTime.fromJSDate(appointment.startAt, { zone: 'utc' }).toISO()),
-  );
 }
 
 export async function getAvailability(
@@ -55,7 +54,7 @@ export async function getAvailability(
   const now = DateTime.now().setZone(zone);
   const startDay = now.startOf('day');
   const end = startDay.plus({ days }).endOf('day');
-  const booked = await bookedKeys(doctor.id, startDay, end);
+  const booked = await bookedIntervals(doctor.id, startDay, end);
   const result: AvailabilityDay[] = [];
 
   for (let offset = 0; offset < days; offset += 1) {
@@ -67,6 +66,7 @@ export async function getAvailability(
     if (!windows.length) continue;
 
     const slots: Slot[] = [];
+    const seen = new Set<string>();
     for (const window of windows) {
       for (
         let minute = window.startMinute;
@@ -77,7 +77,12 @@ export async function getAvailability(
         if (start <= now.plus({ hours: 2 })) continue;
         const endAt = start.plus({ minutes: window.slotMinutes });
         const key = start.toUTC().toISO();
-        if (!key || booked.has(key)) continue;
+        if (!key || seen.has(key)) continue;
+        if (booked.some((appointment) =>
+          appointment.startAt.getTime() < endAt.toMillis() &&
+          appointment.endAt.getTime() > start.toMillis()
+        )) continue;
+        seen.add(key);
         slots.push({
           startAt: key,
           endAt: endAt.toUTC().toISO() as string,
@@ -182,6 +187,7 @@ export async function hasBookingConflict(doctorId: string, startAt: Date, endAt:
 }
 
 export function withinJoinWindow(startAt: Date, endAt: Date) {
+  if (env.isDemo) return true;
   const now = Date.now();
   return now >= startAt.getTime() - 15 * 60 * 1000 && now <= endAt.getTime() + 30 * 60 * 1000;
 }

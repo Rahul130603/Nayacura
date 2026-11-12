@@ -341,7 +341,11 @@ export default function DoctorDashboard() {
       });
       push({ title: 'Availability updated', description: 'Future booking slots now reflect this schedule.', tone: 'success' });
       setAvailabilityDirty(false);
-      await availabilityQuery.refetch();
+      await Promise.all([
+        availabilityQuery.refetch(),
+        queryClient.invalidateQueries({ queryKey: ['booking-availability'] }),
+        queryClient.invalidateQueries({ queryKey: ['availability'] }),
+      ]);
     } catch (error) {
       push({ title: 'Could not save availability', description: error instanceof Error ? error.message : undefined, tone: 'error' });
     } finally {
@@ -804,8 +808,8 @@ export default function DoctorDashboard() {
                 <p className="font-sans text-[12px] font-semibold text-ivory">Weekly consultation hours</p>
                 <p className="mt-1 max-w-xl font-body text-[9.5px] leading-relaxed text-mauve">
                   Slots are generated in {availabilityQuery.data?.timezone || 'your timezone'} for a
-                  30-minute first consultation. Existing booked appointments are never cancelled by a
-                  schedule change.
+                  30-minute first consultation. Clients can book at least two hours ahead.
+                  Existing appointments keep their booked times.
                 </p>
               </div>
               <div className="flex gap-2">

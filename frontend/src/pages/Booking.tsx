@@ -209,22 +209,19 @@ export default function Booking() {
 
   const availabilityQuery = useQuery({
     queryKey: ['booking-availability', doctorSlug, mode],
-    enabled: Boolean(doctorSlug && doctor),
-    queryFn: async () => {
-      try {
-        return await api<AvailabilityResponse>(
-          `/doctors/${doctorSlug}/availability?mode=${mode}&days=21`,
-        );
-      } catch {
-        return { days: [], timezone: 'Asia/Kolkata' };
-      }
-    },
+    enabled: Boolean(doctorSlug && doctor && step === 3),
+    staleTime: 0,
+    refetchOnWindowFocus: 'always',
+    refetchInterval: 15_000,
+    queryFn: () => api<AvailabilityResponse>(
+      `/doctors/${doctorSlug}/availability?mode=${mode}&days=21`,
+    ),
   });
 
   useEffect(() => {
-    if (!availabilityQuery.data?.days.length) return;
-    if (!selectedDate) setSelectedDate(availabilityQuery.data.days[0].date);
-    if (initialSlot) {
+    if (step !== 3 || !availabilityQuery.data?.days.length) return;
+    if (availabilityQuery.data.days.some((day) => day.date === selectedDate)) return;
+    if (!selectedDate && initialSlot) {
       const found = availabilityQuery.data.days
         .flatMap((day) => day.slots)
         .find((item) => item.startAt === initialSlot);
@@ -233,16 +230,26 @@ export default function Booking() {
         const day = availabilityQuery.data.days.find((item) =>
           item.slots.some((s) => s.startAt === initialSlot),
         );
-        if (day) setSelectedDate(day.date);
+        if (day) {
+          setSelectedDate(day.date);
+          return;
+        }
       }
     }
-  }, [availabilityQuery.data, initialSlot, selectedDate]);
+    setSelectedDate(availabilityQuery.data.days[0].date);
+  }, [step, availabilityQuery.data, initialSlot, selectedDate]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
   const selectedDay = availabilityQuery.data?.days.find((day) => day.date === selectedDate);
+  const slotStillAvailable = selectedDay?.slots.some(
+    (item) => item.startAt === slot?.startAt && item.endAt === slot?.endAt,
+  );
+  useEffect(() => {
+    if (step === 3 && availabilityQuery.isSuccess && slot && !slotStillAvailable) setSlot(null);
+  }, [step, availabilityQuery.isSuccess, slot, slotStillAvailable]);
   const selectedDoctor = doctor;
 
   const filteredDoctors = useMemo(() => {
@@ -656,8 +663,8 @@ export default function Booking() {
                           </p>
                           <h2 className="display mt-3 text-3xl sm:text-4xl">Choose a time that works.</h2>
                           <p className="mt-2 font-body text-[11.5px] text-mauve">
-                            Slots are generated from the demo schedule. Times are shown in your
-                            device timezone.
+                            Available times reflect the specialist’s saved schedule. Book at least
+                            two hours ahead.
                           </p>
                         </div>
                         <div className="flex rounded-full border border-white/10 bg-white/[0.03] p-1">
@@ -698,6 +705,14 @@ export default function Booking() {
 
                       {availabilityQuery.isLoading ? (
                         <div className="mt-6 skeleton h-64 rounded-2xl" />
+                      ) : availabilityQuery.isError ? (
+                        <EmptyState
+                          className="mt-6"
+                          icon={<CalendarDays className="h-5 w-5" />}
+                          title="Could not load available times"
+                          description="Refresh to try loading the specialist’s schedule again."
+                          action={<Button variant="secondary" onClick={() => void availabilityQuery.refetch()}>Refresh times</Button>}
+                        />
                       ) : !availabilityQuery.data?.days.length ? (
                         <EmptyState
                           className="mt-6"
@@ -1030,7 +1045,7 @@ export default function Booking() {
                           </p>
                           <p className="mt-2 font-body text-[10px] leading-relaxed text-mauve">
                             {appointment.mode === 'ONLINE'
-                              ? 'The secure video room opens 15 minutes before your appointment. Join from your dashboard after reading and accepting the teleconsultation consent. The room is not a public link.'
+                              ? 'Open the video room from your dashboard and accept the teleconsultation consent to join.'
                               : 'Exact clinic details are not published in this demo. A production service would share the confirmed address through the account and appointment email.'}
                           </p>
                         </div>
@@ -1078,7 +1093,7 @@ export default function Booking() {
                       Continue <ArrowRight className="h-4 w-4" />
                     </Button>
                   ) : (
-                    <Button type="button" onClick={next} disabled={!slot}>
+                    <Button type="button" onClick={next} disabled={!slotStillAvailable || availabilityQuery.isError}>
                       Continue <ArrowRight className="h-4 w-4" />
                     </Button>
                   )}

@@ -21,7 +21,7 @@ import {
   Video,
   WifiOff,
 } from 'lucide-react';
-import type { Room as LiveKitRoom } from 'livekit-client';
+import type { RemoteTrack, Room as LiveKitRoom } from 'livekit-client';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { formatDateTime, formatTime, cn } from '@/lib/utils';
@@ -29,6 +29,7 @@ import { Logo } from '@/components/layout/Logo';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
+import { Avatar } from '@/components/ui/Avatar';
 import { PageLoader, ErrorState } from '@/components/ui/States';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
@@ -71,6 +72,7 @@ export default function ConsultationRoom() {
   const [cameraOn, setCameraOn] = useState(true);
   const [connection, setConnection] = useState<Connection>('idle');
   const [tokenInfo, setTokenInfo] = useState<TokenResponse | null>(null);
+  const [remoteVideo, setRemoteVideo] = useState<RemoteTrack | null>(null);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [cameraId, setCameraId] = useState('');
@@ -82,7 +84,7 @@ export default function ConsultationRoom() {
   const timer = useSessionTimer(joined);
 
   const appointmentQuery = useQuery({
-    queryKey: ['consultation', id],
+    queryKey: ['consultation', id, user?.id],
     enabled: Boolean(user && id),
     queryFn: () => api<{ appointment: Appointment }>(`/appointments/${id}`),
   });
@@ -153,10 +155,13 @@ export default function ConsultationRoom() {
     room.on(RoomEvent.Reconnecting, () => setConnection('reconnecting'));
     room.on(RoomEvent.Reconnected, () => setConnection('connected'));
     room.on(RoomEvent.Disconnected, () => setConnection('disconnected'));
-    room.on(RoomEvent.TrackSubscribed, (track: { kind: string; attach: (el: HTMLVideoElement) => void }) => {
-      if (track.kind === 'video' && remoteVideoRef.current) {
-        track.attach(remoteVideoRef.current);
-      }
+    room.on(RoomEvent.TrackSubscribed, (track) => {
+      if (track.kind === 'video') setRemoteVideo(track);
+      if (track.kind === 'audio') document.body.append(track.attach());
+    });
+    room.on(RoomEvent.TrackUnsubscribed, (track) => {
+      if (track.kind === 'video') setRemoteVideo((current) => current === track ? null : current);
+      if (track.kind === 'audio') track.detach().forEach((element) => element.remove());
     });
     await room.connect(info.url, info.token);
     await room.localParticipant.setCameraEnabled(true);
@@ -266,6 +271,13 @@ export default function ConsultationRoom() {
     }
   }, [joined, refreshDevices]);
 
+  useEffect(() => {
+    const element = remoteVideoRef.current;
+    if (!joined || !remoteVideo || !element) return;
+    remoteVideo.attach(element);
+    return () => { remoteVideo.detach(element); };
+  }, [joined, remoteVideo]);
+
   if (loading) return <PageLoader label="Securing your consultation room" />;
   if (!user) {
     return <Navigate to={`/login?next=${encodeURIComponent(`/consult/${id}`)}`} replace />;
@@ -284,6 +296,13 @@ export default function ConsultationRoom() {
   }
 
   const notJoinable = appointment.mode !== 'ONLINE' || !['CONFIRMED', 'IN_PROGRESS'].includes(appointment.status);
+  const isDoctor = user.role === 'DOCTOR';
+  const otherName = isDoctor ? appointment.patient?.name || 'Client' : appointment.doctor.name;
+  const otherRole = isDoctor ? 'Client' : appointment.doctor.title;
+  const otherAvatar = isDoctor
+    ? <Avatar name={otherName} size="xl" />
+    : <DoctorAvatar doctor={appointment.doctor} size="xl" />;
+  const appointmentsPath = isDoctor ? '/doctor?section=appointments' : '/dashboard?section=appointments';
   const statusLabel =
     connection === 'connected'
       ? tokenInfo?.provider === 'LIVEKIT'
@@ -352,7 +371,7 @@ export default function ConsultationRoom() {
                       update the appointment and add any notes or follow-up with your consent.
                     </p>
                     <div className="mt-6 flex flex-wrap justify-center gap-3">
-                      <ButtonLink to="/dashboard?section=appointments" arrow>
+                      <ButtonLink to={appointmentsPath} arrow>
                         Back to my appointments
                       </ButtonLink>
                       <ButtonLink to="/contact" variant="secondary">
@@ -367,9 +386,9 @@ export default function ConsultationRoom() {
                     <p className="mt-3 font-body text-[12px] leading-relaxed text-mauve">
                       {appointment.mode !== 'ONLINE'
                         ? 'This is an in-person appointment. There is no video room for it.'
-                        : 'This appointment must be confirmed before the room opens. The room is available from 15 minutes before the start time.'}
+                        : 'This appointment must be confirmed and active before you can enter the room.'}
                     </p>
-                    <ButtonLink to="/dashboard?section=appointments" variant="secondary" className="mt-6">
+                    <ButtonLink to={appointmentsPath} variant="secondary" className="mt-6">
                       View my appointment
                     </ButtonLink>
                   </div>
@@ -378,16 +397,16 @@ export default function ConsultationRoom() {
                     <div className="relative mb-7">
                       <div className="absolute inset-0 -m-8 rounded-full border border-lavender/10" />
                       <div className="absolute inset-0 -m-16 rounded-full border border-rose/[0.06]" />
-                      <DoctorAvatar doctor={appointment.doctor} size="xl" />
+                      {otherAvatar}
                       <span className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-4 border-[#0C0812] bg-rose" />
                     </div>
                     <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-lavender">
                       Waiting room
                     </p>
                     <h1 className="display mt-3 text-center text-4xl sm:text-5xl">
-                      {appointment.doctor.name}
+                      {otherName}
                     </h1>
-                    <p className="mt-2 font-sans text-[11px] text-mauve">{appointment.doctor.title}</p>
+                    <p className="mt-2 font-sans text-[11px] text-mauve">{otherRole}</p>
 
                     <div className="mt-6 w-full max-w-md rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 text-left">
                       <p className="font-sans text-[10px] font-semibold text-ivory">Before you join</p>
@@ -446,7 +465,7 @@ export default function ConsultationRoom() {
                       Enter secure room
                     </Button>
                     <p className="mt-3 font-body text-[8.5px] text-mauve/50">
-                      Room opens 15 minutes before the appointment.
+                      Accept the consultation consent to join when your room is available.
                     </p>
                   </>
                 )}
@@ -454,24 +473,25 @@ export default function ConsultationRoom() {
             ) : (
               <>
                 <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-                  {tokenInfo?.provider === 'LIVEKIT' ? (
+                  {tokenInfo?.provider === 'LIVEKIT' && (
                     <video
                       ref={remoteVideoRef}
                       autoPlay
                       playsInline
-                      className="h-full w-full object-cover"
+                      className={cn('absolute inset-0 h-full w-full bg-black object-contain', !remoteVideo && 'invisible')}
                     />
-                  ) : (
+                  )}
+                  {!remoteVideo && (
                     <div className="relative flex h-full w-full flex-col items-center justify-center gap-5 p-6">
                       <div className="absolute h-64 w-64 rounded-full border border-lavender/10 sm:h-96 sm:w-96" />
                       <div className="absolute h-44 w-44 rounded-full border border-rose/10 sm:h-64 sm:w-64" />
-                      <DoctorAvatar doctor={appointment.doctor} size="xl" />
+                      {otherAvatar}
                       <div className="relative z-10 text-center">
-                        <p className="font-display text-3xl text-ivory">{appointment.doctor.name}</p>
-                        <p className="mt-1 font-sans text-[10px] text-mauve">{appointment.doctor.title}</p>
+                        <p className="font-display text-3xl text-ivory">{otherName}</p>
+                        <p className="mt-1 font-sans text-[10px] text-mauve">{otherRole}</p>
                         <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-midnight/50 px-3 py-1.5 font-body text-[9px] text-mauve backdrop-blur-md">
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose" />
-                          Demo room · no remote clinician connected
+                          {tokenInfo?.provider === 'LIVEKIT' ? 'Waiting for participant video' : 'Demo room · local preview only'}
                         </span>
                       </div>
                     </div>
@@ -480,9 +500,9 @@ export default function ConsultationRoom() {
                   <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 bg-gradient-to-b from-[#07040B]/80 to-transparent p-4">
                     <div>
                       <p className="font-sans text-[10px] font-semibold text-ivory">
-                        {appointment.doctor.name}
+                        {otherName}
                       </p>
-                      <p className="font-body text-[9px] text-mauve">Clinician · demo profile</p>
+                      <p className="font-body text-[9px] text-mauve">{isDoctor ? 'Client' : 'Doctor'}</p>
                     </div>
                     <div className="flex items-center gap-2 rounded-full border border-white/10 bg-midnight/50 px-2.5 py-1 font-body text-[8.5px] text-ivory/70 backdrop-blur-md">
                       <ConnectionIcon className="h-3 w-3 text-lavender" /> {statusLabel}
@@ -502,16 +522,12 @@ export default function ConsultationRoom() {
                         You {!cameraOn && '· camera off'}
                       </p>
                     </div>
-                  </div>
-
-                  {!cameraOn && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#07040B]/70">
-                      <div className="text-center">
-                        <CameraOff className="mx-auto h-7 w-7 text-mauve" />
-                        <p className="mt-2 font-body text-[10px] text-mauve">Camera is off</p>
+                    {!cameraOn && (
+                      <div className="absolute inset-0 grid place-items-center bg-midnight">
+                        <CameraOff className="h-5 w-5 text-mauve" aria-label="Your camera is off" />
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 border-t border-white/[0.08] bg-midnight/70 p-3 backdrop-blur-md sm:gap-3 sm:p-4">
@@ -595,7 +611,7 @@ export default function ConsultationRoom() {
                     Participant
                   </p>
                   <p className="mt-1 font-sans text-[10.5px] text-ivory/70">
-                    {user.name} · patient
+                    {user.name} · {isDoctor ? 'doctor' : 'client'}
                   </p>
                 </div>
                 <div>
@@ -685,7 +701,7 @@ export default function ConsultationRoom() {
 
             <div className="flex items-center justify-between px-1">
               <Link
-                to="/dashboard?section=appointments"
+                to={appointmentsPath}
                 className="inline-flex items-center gap-1.5 font-sans text-[9px] text-mauve hover:text-ivory"
               >
                 <ArrowLeft className="h-3 w-3" /> My appointments

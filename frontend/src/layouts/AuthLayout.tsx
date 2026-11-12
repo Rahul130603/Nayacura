@@ -1,9 +1,13 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { ArrowLeft, HeartHandshake, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { RouteEffects } from '@/components/layout/RouteEffects';
+import { cn } from '@/lib/utils';
 
 export function AuthLayout() {
+  const { pathname } = useLocation();
+  const isLogin = /^\/(?:doctor\/|admin\/)?login\/?$/.test(pathname);
+
   return (
     <div className="min-h-screen bg-midnight">
       <RouteEffects />
@@ -13,8 +17,11 @@ export function AuthLayout() {
       >
         Skip to form
       </a>
-      <div className="grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="relative flex flex-col px-5 py-6 sm:px-10 sm:py-8 lg:px-16 xl:px-24">
+      <div className="grid min-h-[calc(100svh/var(--desktop-scale,1))] lg:grid-cols-[0.95fr_1.05fr]">
+        <div className={cn(
+          'relative flex flex-col px-5 sm:px-10 lg:px-16 xl:px-24',
+          isLogin ? 'py-3 sm:py-4' : 'py-6 sm:py-8',
+        )}>
           <div className="flex items-center justify-between">
             <Logo />
             <Link
@@ -24,12 +31,12 @@ export function AuthLayout() {
               <ArrowLeft className="h-3.5 w-3.5" /> Back to site
             </Link>
           </div>
-          <main id="auth-content" className="flex flex-1 items-center py-10 sm:py-14">
+          <main id="auth-content" className={cn('flex flex-1 items-center', isLogin ? 'py-4' : 'py-10 sm:py-14')}>
             <div className="mx-auto w-full max-w-[430px]">
               <Outlet />
             </div>
           </main>
-          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.07] pt-5">
+          <footer className={cn('flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.07]', isLogin ? 'pt-2' : 'pt-5')}>
             <p className="font-body text-[9px] text-mauve/50">
               © {new Date().getFullYear()} Nayacura · Development demo
             </p>
@@ -51,14 +58,19 @@ export function AuthLayout() {
           </footer>
         </div>
 
-        <aside className="relative hidden overflow-hidden border-l border-white/[0.06] lg:block">
+        <aside className={cn('relative hidden overflow-hidden lg:block', !isLogin && 'border-l border-white/[0.06]')}>
           <img
-            src="/images/art/space.svg"
+            src={isLogin ? '/images/art/login-purple-couple.png' : '/images/art/space.svg'}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            className={cn('absolute inset-0 h-full w-full object-cover', isLogin && 'object-right')}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-midnight via-midnight/30 to-midnight/20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-midnight/60 via-transparent to-transparent" />
+          <div className={cn(
+            'pointer-events-none absolute inset-0',
+            isLogin
+              ? 'bg-[linear-gradient(to_right,var(--midnight),rgba(9,6,15,0.78)_9%,rgba(9,6,15,0.28)_22%,transparent_36%)]'
+              : 'bg-gradient-to-r from-midnight/60 via-transparent to-transparent',
+          )} />
           <div className="absolute left-10 top-10 flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-rose" />
             <span className="font-sans text-[8px] font-semibold uppercase tracking-[0.22em] text-ivory/50">
