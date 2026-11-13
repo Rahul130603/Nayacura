@@ -6,7 +6,10 @@ import type { Config } from 'tailwindcss';
  * the product accidentally through a stock utility class.
  */
 const config: Config = {
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  content: {
+    relative: true,
+    files: ['./index.html', './src/**/*.{ts,tsx}'],
+  },
   theme: {
     colors: {
       transparent: 'transparent',

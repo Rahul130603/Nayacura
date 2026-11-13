@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Seo } from '@/components/Seo';
 import { PageHero } from '@/components/layout/PageHero';
+import type { ComponentProps } from 'react';
 import { Accordion } from '@/components/ui/Accordion';
 import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
@@ -30,6 +31,35 @@ const categorySpecialists: Record<string, string[]> = {
   'womens-sexual-wellness': ['gynaecology', 'sexual-medicine', 'psychosexual-therapy'],
   'couples-relationship-counselling': ['couples-therapy', 'relationship-counselling'],
   'emotional-psychological-wellbeing': ['clinical-psychology', 'psychiatry', 'psychosexual-therapy'],
+};
+
+const serviceHeroImages: Partial<Record<string, ComponentProps<typeof PageHero>['backgroundImage']>> = {
+  'emotional-connection': { src: '/images/art/emotional-connection-hero.png', width: 1779, height: 884 },
+  'communication-difficulties': { src: '/images/art/communication-difficulties-hero.png', width: 1779, height: 884 },
+  'erectile-difficulties': { src: '/images/art/erectile-difficulties-hero.png', width: 1918, height: 820 },
+  'premature-ejaculation-concerns': { src: '/images/art/premature-ejaculation-hero.png', width: 1781, height: 883 },
+  'low-sexual-desire-men': { src: '/images/art/low-sexual-desire-men-hero.png', width: 1855, height: 848 },
+  'performance-anxiety': { src: '/images/art/performance-anxiety-hero.png', width: 1855, height: 848 },
+  'sexual-confidence-concerns': { src: '/images/art/sexual-confidence-concerns-hero.png', width: 1781, height: 883 },
+  'intimacy-relationship-difficulties-men': { src: '/images/art/intimacy-relationship-difficulties-hero.png', width: 1781, height: 883 },
+  'reproductive-wellness-guidance-men': { src: '/images/art/reproductive-wellness-guidance-men-hero.png', width: 1781, height: 883 },
+  'reproductive-wellness-guidance-women': { src: '/images/art/reproductive-wellness-guidance-women-hero.png', width: 1779, height: 884 },
+  'low-sexual-desire-women': { src: '/images/art/low-sexual-desire-women-hero.png', width: 1781, height: 883 },
+  'painful-intimacy': { src: '/images/art/painful-intimacy-hero.png', width: 1781, height: 883 },
+  'sexual-wellbeing-concerns-women': { src: '/images/art/sexual-wellbeing-concerns-women-hero.png', width: 1780, height: 884 },
+  'intimacy-related-anxiety': { src: '/images/art/intimacy-related-anxiety-hero.png', width: 1779, height: 884 },
+  'menopause-sexual-wellbeing': { src: '/images/art/menopause-sexual-wellbeing-hero.png', width: 1779, height: 884 },
+  'relationship-communication-challenges': { src: '/images/art/relationship-communication-challenges-hero.png', width: 1779, height: 884 },
+  'relationship-conflicts': { src: '/images/art/relationship-conflicts-hero.png', width: 1024, height: 508 },
+  'intimacy-challenges-couples': { src: '/images/art/intimacy-challenges-couples-hero.png', width: 1779, height: 884 },
+  'trust-rebuilding': { src: '/images/art/trust-rebuilding-hero.png', width: 1024, height: 512 },
+  'premarital-counselling': { src: '/images/art/premarital-counselling-hero.png', width: 1024, height: 512 },
+  'couples-wellness-planning': { src: '/images/art/couples-wellness-planning-hero.png', width: 1024, height: 512 },
+  'stress-related-intimacy-concerns': { src: '/images/art/stress-related-intimacy-concerns-hero.png', width: 1024, height: 512 },
+  'body-image-confidence': { src: '/images/art/body-image-confidence-hero.png', width: 1024, height: 512 },
+  'relationship-anxiety': { src: '/images/art/relationship-anxiety-hero.png', width: 1024, height: 512 },
+  'emotional-wellbeing': { src: '/images/art/emotional-wellbeing-hero.png', width: 1024, height: 512 },
+  'sexual-health-education': { src: '/images/art/sexual-health-education-hero.png', width: 1024, height: 512 },
 };
 
 export default function ServiceDetail() {
@@ -59,6 +89,7 @@ export default function ServiceDetail() {
         title={service.name}
         description={service.summary}
         art="veil"
+        backgroundImage={serviceHeroImages[service.slug]}
         breadcrumbs={[
           { label: 'Home', to: '/' },
           { label: 'Services', to: '/services' },
