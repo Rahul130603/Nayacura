@@ -34,6 +34,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
+import { Switch } from '@/components/ui/Switch';
 import { useToast } from '@/components/ui/Toast';
 import { cn, formatCurrency, formatDate, formatDateTime, formatTime } from '@/lib/utils';
 import type { Appointment } from '@/types';
@@ -835,24 +836,12 @@ export default function DoctorDashboard() {
                   <div key={day} className="border-b border-white/[0.06] px-4 py-4 last:border-b-0 sm:px-5">
                     <div className="grid gap-3 lg:grid-cols-[10rem_minmax(0,1fr)]">
                       <div className="flex items-center gap-3 sm:pt-1.5">
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={hasWindows}
+                        <Switch
+                          label={`${day} availability`}
+                          checked={hasWindows}
                           onClick={() => toggleDay(weekday)}
-                          className={cn(
-                            'relative h-5 w-9 shrink-0 rounded-full border transition-colors',
-                            hasWindows ? 'border-lavender/40 bg-lavender/30' : 'border-white/15 bg-white/10',
-                          )}
-                          aria-label={`${hasWindows ? 'Disable' : 'Enable'} ${day}`}
-                        >
-                          <span
-                            className={cn(
-                              'absolute left-0.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-ivory transition-transform',
-                              hasWindows && 'translate-x-4',
-                            )}
-                          />
-                        </button>
+                          compact
+                        />
                         <p className={cn('font-sans text-[11px]', hasWindows ? 'text-ivory' : 'text-mauve/50')}>{day}</p>
                       </div>
                       {hasWindows ? (

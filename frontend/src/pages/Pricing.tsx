@@ -180,7 +180,9 @@ export default function Pricing() {
         title="Clear fees."
         accent="No hidden access."
         description="You should know what a consultation costs, what it includes and what it does not promise before you pay. These are illustrative development prices, not a live clinical offering."
-        art="veil"
+        breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Pricing' }]}
+        backgroundImage={{ src: '/images/art/pricing-hero-banner.png', width: 1855, height: 848 }}
+        art="none"
       >
         <div className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-1">
           {[

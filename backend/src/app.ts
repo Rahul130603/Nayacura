@@ -20,6 +20,7 @@ import { doctorRouter } from './routes/doctor';
 import { adminRouter } from './routes/admin';
 import { aiRouter } from './routes/ai';
 import { supportRouter } from './routes/support';
+import { newsletterRouter } from './routes/newsletter';
 
 export function createApp() {
   const app = express();
@@ -103,6 +104,7 @@ export function createApp() {
   app.use('/api/admin', adminRouter);
   app.use('/api/ai', aiRouter);
   app.use('/api/support', supportRouter);
+  app.use('/api/newsletter', newsletterRouter);
 
   app.use('/api', notFoundHandler);
 

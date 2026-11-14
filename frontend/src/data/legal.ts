@@ -179,34 +179,6 @@ export const legalPages: LegalPage[] = [
 <p>Questions about cookies can be sent through the <a href="/contact">Support</a> page. The final policy must identify the legal entity and a grievance contact.</p>`,
   },
   {
-    slug: 'accessibility',
-    title: 'Accessibility Statement',
-    eyebrow: 'Inclusion',
-    summary:
-      'Our accessibility intentions, what this prototype supports, and where it still needs testing.',
-    updated: '11 November 2026',
-    content: `${DRAFT}
-<h2>1. Our commitment</h2>
-<p>Sexual wellness care is personal, and access should not depend on whether a person can use a mouse, see a particular contrast level or tolerate motion. Nayacura aims to follow WCAG 2.2 AA practices and to test with real assistive technology users before launch.</p>
-<h2>2. What this prototype implements</h2>
-<ul>
-<li>Semantic page structure, skip-to-content navigation and logical heading order.</li>
-<li>Visible focus styles and keyboard-operable navigation, dialogs and form controls.</li>
-<li>A reduced-motion mode that disables the 3D hero and smooth scrolling.</li>
-<li>Text alternatives for decorative and informative images where required.</li>
-<li>Responsive layouts designed to avoid horizontal overflow at small widths.</li>
-<li>Form labels, error messaging and a live region for toast notifications.</li>
-</ul>
-<h2>3. Known limitations</h2>
-<p>This is a development prototype and has not completed an independent accessibility audit. Some complex interactions — including the doctor filter panel, date picker, 3D scene and dashboard data tables — require manual keyboard and screen-reader testing. Colour contrast on decorative text may not meet AA in every state. Third-party payment or video interfaces may have their own limitations.</p>
-<h2>4. Motion and 3D</h2>
-<p>The cinematic scene respects <code>prefers-reduced-motion</code> and provides a static fallback. Essential navigation and booking functions do not require WebGL. If motion remains uncomfortable, use your operating system’s reduce-motion setting or contact support.</p>
-<h2>5. Feedback</h2>
-<p>If you encounter a barrier, please use the <a href="/contact">Support</a> page and describe the page, device and assistive technology involved. Do not include clinical details. A production service should publish a response target and an escalation route.</p>
-<h2>6. Continuous improvement</h2>
-<p>Accessibility would be reviewed alongside design changes, with automated checks and manual testing. This statement must be updated honestly; it must not claim full conformance without evidence.</p>`,
-  },
-  {
     slug: 'data-deletion',
     title: 'Data Deletion Request',
     eyebrow: 'Privacy',

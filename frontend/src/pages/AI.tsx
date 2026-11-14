@@ -30,8 +30,7 @@ export default function AI() {
         title="A quieter place to"
         accent="start."
         description="Ask general questions about sexual wellness, relationships, the consultation process or finding the right specialist. Naya is AI — not a doctor — and cannot diagnose, prescribe or handle emergencies."
-        art="veil"
-        className="pb-10 sm:pb-12 lg:pb-14"
+        backgroundImage={{ src: '/images/art/naya-ai-hero-banner.png', width: 1855, height: 848 }}
       >
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone="lavender" dot>

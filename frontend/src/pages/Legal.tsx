@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router-dom';
+import type { ComponentProps } from 'react';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, FileWarning, Scale, ShieldCheck } from 'lucide-react';
 import { PageHero } from '@/components/layout/PageHero';
 import { Seo } from '@/components/Seo';
@@ -7,10 +8,26 @@ import { ButtonLink } from '@/components/ui/Button';
 import { getLegalPage, legalPages } from '@/data/legal';
 import { NotFound } from './NotFound';
 
+const legalHeroImages: Partial<Record<string, ComponentProps<typeof PageHero>['backgroundImage']>> = {
+  privacy: { src: '/images/art/privacy-policy-banner.png', width: 1849, height: 851 },
+  terms: { src: '/images/art/terms-of-service-banner.png', width: 1848, height: 851 },
+  'medical-disclaimer': { src: '/images/art/medical-disclaimer-banner.png', width: 1849, height: 851 },
+  'teleconsultation-consent': { src: '/images/art/teleconsultation-consent-banner.png', width: 1848, height: 851 },
+  'cancellation-refund': { src: '/images/art/cancellation-refund-banner.png', width: 1848, height: 851 },
+  cookies: { src: '/images/art/cookie-policy-banner.png', width: 1846, height: 852 },
+  'data-deletion': { src: '/images/art/data-deletion-banner.png', width: 1848, height: 851 },
+  grievance: { src: '/images/art/grievance-support-banner.png', width: 1848, height: 851 },
+};
+
 export default function Legal() {
   const { slug } = useParams();
+  if (slug === 'accessibility') {
+    return <Navigate to="/legal/privacy" replace />;
+  }
   const page = getLegalPage(slug || '');
   if (!page) return <NotFound />;
+
+  const heroImage = legalHeroImages[page.slug];
 
   return (
     <>
@@ -29,8 +46,9 @@ export default function Legal() {
           { label: 'Legal & trust', to: '/legal/privacy' },
           { label: page.title },
         ]}
+        backgroundImage={heroImage}
         art="none"
-        className="pb-10 sm:pb-14"
+        className={heroImage ? undefined : 'pb-10 sm:pb-14'}
       >
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone="rose" dot>

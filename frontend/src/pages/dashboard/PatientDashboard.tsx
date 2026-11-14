@@ -40,6 +40,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
 import { Modal } from '@/components/ui/Modal';
+import { Switch } from '@/components/ui/Switch';
 import { useToast } from '@/components/ui/Toast';
 import { cn, formatCurrency, formatDate, formatDateTime } from '@/lib/utils';
 import type { Appointment, AppointmentStatus, Payment, SupportTicket } from '@/types';
@@ -54,7 +55,6 @@ type OverviewResponse = {
     aiHistoryEnabled: boolean;
   };
   upcoming: Appointment[];
-  previous: Appointment[];
   notifications: {
     id: string;
     title: string;
@@ -64,7 +64,7 @@ type OverviewResponse = {
     createdAt: string;
   }[];
   unreadCount: number;
-  stats: { documents: number; prescriptions: number; upcoming: number; completed: number };
+  stats: { upcoming: number };
   recentDocuments: DocumentItem[];
   recentPayments: (Payment & { bookingId: string })[];
 };
@@ -165,21 +165,16 @@ function QuickStat({
   icon: Icon,
   label,
   value,
-  hint,
 }: {
   icon: typeof CalendarDays;
   label: string;
   value: string | number;
-  hint?: string;
 }) {
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-      <div className="flex items-center justify-between">
-        <span className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] text-lavender">
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        {hint && <span className="font-body text-[8px] text-mauve/50">{hint}</span>}
-      </div>
+      <span className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] text-lavender">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
       <p className="mt-4 font-display text-3xl text-ivory">{value}</p>
       <p className="mt-0.5 font-body text-[9px] uppercase tracking-[0.12em] text-mauve/60">{label}</p>
     </div>
@@ -848,22 +843,10 @@ export default function PatientDashboard() {
         {overviewQuery.isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-40 w-full" />
-            <div className="grid gap-3 sm:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-32" />
-              ))}
-            </div>
             <Skeleton className="h-64 w-full" />
           </div>
         ) : section === 'overview' ? (
           <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <QuickStat icon={CalendarDays} label="Upcoming" value={overview?.stats.upcoming || 0} hint="Appointments" />
-              <QuickStat icon={Check} label="Completed" value={overview?.stats.completed || 0} hint="All time" />
-              <QuickStat icon={FileText} label="Prescriptions" value={overview?.stats.prescriptions || 0} hint="Records" />
-              <QuickStat icon={FolderLock} label="Documents" value={overview?.stats.documents || 0} hint="Private" />
-            </div>
-
             <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
               <div className="space-y-4">
                 <div className="relative overflow-hidden rounded-[24px] border border-lavender/15 bg-gradient-to-br from-burgundy/30 via-plum to-royal/15 p-5 sm:p-7">
@@ -975,39 +958,6 @@ export default function PatientDashboard() {
                           </ButtonLink>
                         }
                       />
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5">
-                  <p className="font-sans text-[11px] font-semibold text-ivory">Recent history</p>
-                  <div className="mt-4 space-y-2">
-                    {overview?.previous.length ? (
-                      overview.previous.slice(0, 2).map((appointment) => (
-                        <div
-                          key={appointment.id}
-                          className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] px-3.5 py-3"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <DoctorAvatar doctor={appointment.doctor} size="sm" />
-                            <div>
-                              <p className="font-sans text-[10.5px] text-ivory">{appointment.doctor.name}</p>
-                              <p className="mt-0.5 font-body text-[9px] text-mauve">
-                                {formatDate(appointment.startAt)} · {statusLabels[appointment.status]}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => void openNotes(appointment)}
-                            className="font-sans text-[9px] font-semibold text-lavender hover:text-rose"
-                          >
-                            Record
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="font-body text-[10px] text-mauve">No previous consultations yet.</p>
                     )}
                   </div>
                 </div>
@@ -1553,24 +1503,12 @@ export default function PatientDashboard() {
                         content is encrypted and visible only to your account.
                       </p>
                     </div>
-                    <button
-                      type="button"
+                    <Switch
+                      label="Naya AI conversation storage"
+                      checked={profile?.aiHistoryEnabled ?? false}
+                      disabled={!profile}
                       onClick={() => void toggleAiHistory()}
-                      aria-pressed={profile?.aiHistoryEnabled}
-                      className={cn(
-                        'relative h-6 w-11 shrink-0 rounded-full border transition-colors',
-                        profile?.aiHistoryEnabled
-                          ? 'border-lavender/40 bg-lavender/30'
-                          : 'border-white/15 bg-white/10',
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'absolute top-0.5 h-4 w-4 rounded-full bg-ivory transition-transform',
-                          profile?.aiHistoryEnabled ? 'translate-x-6' : 'translate-x-0.5',
-                        )}
-                      />
-                    </button>
+                    />
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.07] p-4">
                     <div>

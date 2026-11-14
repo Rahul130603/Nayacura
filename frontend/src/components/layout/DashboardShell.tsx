@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -41,11 +41,34 @@ export function DashboardShell({
   const location = useLocation();
   const [params, setParams] = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
+  const accountPanelId = useId();
   const active = params.get('section') || navItems[0]?.key || 'overview';
+  const accountItems = navItems.filter(({ key }) => ['profile', 'privacy', 'settings'].includes(key));
 
   useEffect(() => {
     setOpen(false);
+    setAccountOpen(false);
   }, [location.pathname, active]);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+
+    function closeWhenOutside(event: Event) {
+      if (event.target instanceof Node && !accountRef.current?.contains(event.target)) {
+        setAccountOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', closeWhenOutside);
+    document.addEventListener('focusin', closeWhenOutside);
+    return () => {
+      document.removeEventListener('pointerdown', closeWhenOutside);
+      document.removeEventListener('focusin', closeWhenOutside);
+    };
+  }, [accountOpen]);
 
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
@@ -223,14 +246,62 @@ export function DashboardShell({
               <span className="hidden items-center gap-1.5 rounded-full border border-lavender/15 bg-lavender/[0.04] px-3 py-1.5 font-body text-[8.5px] text-lavender sm:inline-flex">
                 <span className="h-1.5 w-1.5 rounded-full bg-lavender" /> Demo environment
               </span>
-              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] py-1 pl-1 pr-2.5">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-royal to-burgundy font-sans text-[9px] font-semibold text-ivory">
-                  {initials(user?.name || 'N')}
-                </span>
-                <span className="hidden max-w-[100px] truncate font-sans text-[10px] text-ivory/80 sm:block">
-                  {user?.name}
-                </span>
-                <ChevronDown className="h-3 w-3 text-mauve" />
+              <div
+                ref={accountRef}
+                className="relative"
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape' && accountOpen) {
+                    setAccountOpen(false);
+                    accountButtonRef.current?.focus();
+                  }
+                }}
+              >
+                <button
+                  ref={accountButtonRef}
+                  type="button"
+                  aria-label={user?.name ? `Account menu for ${user.name}` : 'Account menu'}
+                  aria-expanded={accountOpen}
+                  aria-controls={accountPanelId}
+                  onClick={() => setAccountOpen((current) => !current)}
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] py-1 pl-1 pr-2.5 transition-colors hover:border-lavender/30"
+                >
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-royal to-burgundy font-sans text-[9px] font-semibold text-ivory">
+                    {initials(user?.name || 'N')}
+                  </span>
+                  <span className="hidden max-w-[100px] truncate font-sans text-[10px] text-ivory/80 sm:block">
+                    {user?.name}
+                  </span>
+                  <ChevronDown className={cn('h-3 w-3 text-mauve', accountOpen && 'rotate-180')} aria-hidden="true" />
+                </button>
+                <div
+                  id={accountPanelId}
+                  hidden={!accountOpen}
+                  className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-white/10 bg-plum p-1.5 shadow-card"
+                >
+                  {accountItems.map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        go(key);
+                        setAccountOpen(false);
+                        accountButtonRef.current?.focus();
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left font-sans text-[11px] text-ivory hover:bg-white/[0.06]"
+                    >
+                      <Icon className="h-3.5 w-3.5 text-lavender" aria-hidden="true" />
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left font-sans text-[11px] text-ivory hover:bg-white/[0.06]"
+                  >
+                    <LogOut className="h-3.5 w-3.5 text-rose" aria-hidden="true" />
+                    Sign out
+                  </button>
+                </div>
               </div>
             </div>
           </div>

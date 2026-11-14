@@ -22,7 +22,6 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/ui/Reveal';
 import { ButtonLink } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { DemoNotice } from '@/components/ui/DemoNotice';
 
 const principles = [
   {
@@ -507,8 +506,7 @@ export default function About() {
               <p className="mt-5 font-body text-[13px] leading-[1.9] text-mauve">
                 Nayacura is designed for adults across gender identities, relationship structures,
                 languages, bodies and abilities. The demo includes English and Tamil AI support,
-                language filters, reduced-motion alternatives, keyboard-accessible controls and a
-                visible accessibility statement.
+                language filters, reduced-motion alternatives and keyboard-accessible controls.
               </p>
               <p className="mt-4 font-body text-[12px] leading-[1.85] text-mauve/80">
                 This is an intention, not a completed conformance claim. The demo has not yet had an
@@ -574,7 +572,6 @@ export default function About() {
               </ButtonLink>
             </div>
           </div>
-          <DemoNotice className="mt-6" />
         </div>
       </section>
 

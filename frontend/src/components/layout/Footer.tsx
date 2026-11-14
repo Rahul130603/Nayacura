@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Clock3, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { serviceCategories } from '@/data/services';
+import { api } from '@/lib/api';
+import { supportEmail } from '@/lib/support';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/Button';
-import { useToast } from '@/components/ui/Toast';
 
 const careLinks = [
   { label: 'Find a specialist', to: '/doctors' },
@@ -29,28 +30,29 @@ const legalLinks = [
   { label: 'Teleconsultation Consent', to: '/legal/teleconsultation-consent' },
   { label: 'Cancellation & Refunds', to: '/legal/cancellation-refund' },
   { label: 'Cookie Policy', to: '/legal/cookies' },
-  { label: 'Accessibility', to: '/legal/accessibility' },
   { label: 'Data Deletion', to: '/legal/data-deletion' },
   { label: 'Grievance & Support', to: '/legal/grievance' },
 ];
 
 export function Footer() {
   const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-  const { push } = useToast();
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
-  function subscribe(e: React.FormEvent) {
+  async function sendWelcome(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      push({ title: 'Please check your email address', tone: 'error' });
-      return;
+    if (sending) return;
+    setError('');
+    setSending(true);
+    try {
+      await api('/newsletter/welcome', { method: 'POST', body: { email: email.trim() } });
+      setSent(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'We could not send the welcome email. Please try again.');
+    } finally {
+      setSending(false);
     }
-    setSubscribed(true);
-    push({
-      title: 'You are on the list',
-      description: 'Demo only — no marketing email has been stored or sent.',
-      tone: 'success',
-    });
   }
 
   return (
@@ -66,18 +68,18 @@ export function Footer() {
               Private care, <span className="display-soft">gently delivered.</span>
             </h2>
             <p className="body-copy mt-5 max-w-lg">
-              Occasional notes on intimate wellbeing, relationships and navigating care — written
-              with care, never with shame. No explicit content. Unsubscribe anytime.
+              Enter your email to get a welcome message from Nayacura.
             </p>
-            {subscribed ? (
-              <div className="mt-8 flex items-center gap-3 rounded-2xl border border-lavender/20 bg-lavender/[0.06] p-4">
-                <ShieldCheck className="h-5 w-5 text-lavender" />
-                <p className="font-body text-sm text-ivory">
-                  You are on the demo list. No data was sent.
-                </p>
+            {sent ? (
+              <div role="status" className="mt-8 flex items-center gap-3 rounded-2xl border border-lavender/20 bg-lavender/[0.06] p-4">
+                <ShieldCheck className="h-5 w-5 shrink-0 text-lavender" aria-hidden="true" />
+                <div className="min-w-0 font-body text-sm text-ivory">
+                  <p className="break-words">Welcome email sent to {email.trim()}.</p>
+                  <p className="mt-1 text-mauve">Look for “Welcome to Nayacura” in your inbox or spam folder.</p>
+                </div>
               </div>
             ) : (
-              <form onSubmit={subscribe} className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
+              <form onSubmit={sendWelcome} className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
                 <label htmlFor="footer-email" className="sr-only">
                   Email address
                 </label>
@@ -89,15 +91,16 @@ export function Footer() {
                   placeholder="Your email address"
                   className="input-premium flex-1"
                   autoComplete="email"
+                  maxLength={254}
+                  required
+                  readOnly={sending}
                 />
-                <Button type="submit" size="md" arrow>
+                <Button type="submit" size="md" loading={sending} disabled={sending} arrow>
                   Join
                 </Button>
               </form>
             )}
-            <p className="mt-3 font-body text-[10px] leading-relaxed text-mauve/60">
-              Demo newsletter form. It does not transmit or persist your email address.
-            </p>
+            {error && <p role="alert" className="mt-3 font-body text-[10px] text-rose">{error}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
@@ -171,6 +174,16 @@ export function Footer() {
               >
                 <Mail className="h-3.5 w-3.5" /> Send a support request
               </Link>
+              {supportEmail && (
+                <div>
+                  <a
+                    href={`mailto:${supportEmail}`}
+                    className="mt-2 inline-block break-all font-sans text-[11px] font-semibold text-lavender hover:text-rose"
+                  >
+                    {supportEmail}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>

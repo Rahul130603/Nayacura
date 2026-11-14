@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Accordion } from '@/components/ui/Accordion';
 import { DemoNotice } from '@/components/ui/DemoNotice';
 import { Reveal } from '@/components/ui/Reveal';
+import { supportEmail } from '@/lib/support';
 
 const categories = [
   {
@@ -144,7 +145,7 @@ export default function Contact() {
         title="A question is a"
         accent="reasonable place to start."
         description="For platform, booking or billing support, write to us below. Please do not include clinical details in a support request. Clinical questions belong in a consultation with a qualified professional."
-        art="rings"
+        backgroundImage={{ src: '/images/art/contact-hero-banner.png', width: 1855, height: 848 }}
       >
         <div className="flex flex-wrap items-center gap-4">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.03] px-3.5 py-2 font-body text-[10px] text-mauve">
@@ -198,6 +199,14 @@ export default function Contact() {
                 request in its local database and sends an acknowledgement only if SMTP is
                 configured.
               </p>
+              {supportEmail && (
+                <a
+                  href={`mailto:${supportEmail}`}
+                  className="mt-4 inline-flex items-center gap-2 font-sans text-[11px] font-semibold text-lavender hover:text-rose"
+                >
+                  <Mail className="h-3.5 w-3.5" aria-hidden="true" /> {supportEmail}
+                </a>
+              )}
               <div className="mt-7 space-y-3">
                 {[
                   [LockKeyhole, 'Do not send clinical records or ID documents'],

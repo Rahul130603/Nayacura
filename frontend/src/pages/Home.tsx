@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -293,6 +292,7 @@ function AiPreview() {
 export default function Home() {
   const root = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (reduce || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -442,24 +442,10 @@ export default function Home() {
 
           </div>
 
-          <div className="relative z-20 flex items-center justify-between pb-6 pt-1">
-            <div className="flex items-center gap-4">
-              <span className="hidden font-body text-[8.5px] uppercase tracking-[0.22em] text-mauve/50 sm:block">
-                Scroll to begin
-              </span>
-              <span className="relative h-10 w-10 rounded-full border border-white/10">
-                <ArrowDown className="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 animate-bounce text-lavender/70" />
-              </span>
-            </div>
-            <div className="hidden items-center gap-4 sm:flex">
-              <span className="font-body text-[8.5px] uppercase tracking-[0.2em] text-mauve/50">
-                Adults 18+
-              </span>
-              <span className="h-3 w-px bg-white/15" />
-              <span className="font-body text-[8.5px] uppercase tracking-[0.2em] text-mauve/50">
-                Development demo
-              </span>
-            </div>
+          <div className="relative z-20 flex justify-end pb-6 pt-1">
+            <span className="font-body text-[8.5px] uppercase tracking-[0.2em] text-mauve/50">
+              Adults 18+
+            </span>
           </div>
         </div>
       </section>
@@ -589,11 +575,11 @@ export default function Home() {
         <div className="container-naya relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-20">
             <Reveal className="relative">
-              <div className="relative aspect-[4/4.55] sm:aspect-[4/4.3] lg:aspect-[4/4.5] overflow-hidden rounded-[30px] border border-white/[0.08] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.6)]">
+              <div className="relative aspect-[4/4.25] overflow-hidden rounded-[30px] border border-white/[0.08] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.6)] sm:aspect-[4/4.1]">
                 <img
                   src="/images/art/connection-two-people.jpg"
                   alt="Ethereal glass ribbon couple with glowing lotus and water ripples"
-                  className="h-full w-full object-cover object-center transition-transform duration-700 hover:scale-[1.02]"
+                  className="h-full w-full object-cover object-top transition-transform duration-700 hover:scale-[1.02]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-plum via-transparent to-transparent pointer-events-none" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-10">
@@ -685,7 +671,7 @@ export default function Home() {
             </div>
             <div className="min-w-0 lg:-mr-6 xl:-mr-10">
               <img
-                src="/images/art/awareness-wellness-couple.png"
+                src="/images/art/awareness-wellness-couple.png?v=2"
                 alt="A couple surrounded by six cards about sexual wellness, relationship support, emotional balance, men’s and women’s wellness, and private, judgment-free care"
                 width={1848}
                 height={851}
@@ -747,9 +733,12 @@ export default function Home() {
                   delay={index * 0.06}
                   className={wide ? 'lg:col-span-7' : 'lg:col-span-5'}
                 >
-                  <Link
-                    to={`/services?category=${category.slug}`}
-                    className="group relative flex h-full min-h-[330px] flex-col justify-between overflow-hidden rounded-[26px] border border-white/[0.075] bg-gradient-to-br from-white/[0.045] via-white/[0.015] to-transparent p-6 transition-all duration-500 hover:border-lavender/25 hover:from-white/[0.065] sm:p-8"
+                  <div
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest('a, button')) return;
+                      navigate(`/services?category=${category.slug}`);
+                    }}
+                    className="group relative flex h-full min-h-[330px] cursor-pointer flex-col justify-between overflow-hidden rounded-[26px] border border-white/[0.075] bg-gradient-to-br from-white/[0.045] via-white/[0.015] to-transparent p-6 transition-all duration-500 hover:border-lavender/25 hover:from-white/[0.065] sm:p-8"
                   >
                     <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full border border-lavender/[0.08] transition-transform duration-700 group-hover:scale-110" />
                     <div className="relative z-10 flex items-start justify-between gap-6">
@@ -763,32 +752,47 @@ export default function Home() {
                           </p>
                         </div>
                         <h3 className="mt-6 max-w-sm font-display text-[28px] leading-tight text-ivory sm:text-[33px]">
-                          {category.name}
+                          <Link
+                            to={`/services?category=${category.slug}`}
+                            className="transition-colors hover:text-rose"
+                          >
+                            {category.name}
+                          </Link>
                         </h3>
                         <p className="mt-3 max-w-md font-body text-[12px] leading-relaxed text-mauve">
                           {category.tagline}
                         </p>
                       </div>
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 text-mauve transition-all duration-300 group-hover:border-rose/40 group-hover:bg-rose/10 group-hover:text-rose">
+                      <Link
+                        to={`/services?category=${category.slug}`}
+                        aria-label={`View ${category.name}`}
+                        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 text-mauve transition-all duration-300 group-hover:border-rose/40 group-hover:bg-rose/10 group-hover:text-rose"
+                      >
                         <ArrowUpRight className="h-4 w-4" />
-                      </span>
+                      </Link>
                     </div>
                     <div className="relative z-10 mt-8 flex flex-wrap gap-1.5">
                       {categoryServices.slice(0, wide ? 5 : 4).map((service) => (
-                        <span
+                        <Link
                           key={service.slug}
-                          className="rounded-full border border-white/[0.075] px-2.5 py-1 font-body text-[9px] text-ivory/45"
+                          to={`/services/${service.slug}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded-full border border-white/[0.09] bg-white/[0.025] px-2.5 py-1 font-body text-[9px] text-ivory/60 transition-all hover:border-rose/40 hover:bg-rose/10 hover:text-ivory"
                         >
                           {service.name}
-                        </span>
+                        </Link>
                       ))}
                       {categoryServices.length > (wide ? 5 : 4) && (
-                        <span className="rounded-full border border-lavender/15 px-2.5 py-1 font-body text-[9px] text-lavender/80">
+                        <Link
+                          to={`/services?category=${category.slug}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded-full border border-lavender/15 bg-lavender/[0.04] px-2.5 py-1 font-body text-[9px] text-lavender/80 transition-all hover:border-lavender/35 hover:bg-lavender/10 hover:text-rose"
+                        >
                           +{categoryServices.length - (wide ? 5 : 4)} more
-                        </span>
+                        </Link>
                       )}
                     </div>
-                  </Link>
+                  </div>
                 </Reveal>
               );
             })}

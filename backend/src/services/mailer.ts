@@ -24,8 +24,12 @@ async function send(to: string, subject: string, text: string, template: string)
     return { delivered: false as const };
   }
   try {
-    await transport.sendMail({ from: env.SMTP_FROM, to, subject, text });
-    logger.info('email.sent', { template });
+    const result = await transport.sendMail({ from: env.SMTP_FROM, to, subject, text });
+    if (!result.accepted?.length) {
+      logger.warn('email.recipient_not_accepted', { template });
+      return { delivered: false as const };
+    }
+    logger.info('email.sent', { template, messageId: result.messageId });
     return { delivered: true as const };
   } catch (error) {
     logger.warn('email.failed', {
@@ -91,6 +95,15 @@ export async function sendVerificationEmail(to: string, verifyUrl: string) {
     'Verify your Nayacura email',
     `Welcome to Nayacura.\n\nPlease verify your email address within 24 hours:\n${verifyUrl}\n\nIf you did not create an account, you can ignore this message.`,
     'email_verification',
+  );
+}
+
+export async function sendWelcomeEmail(to: string) {
+  return send(
+    to,
+    'Welcome to Nayacura',
+    'Welcome to Nayacura!\n\nThanks for stopping by. You can explore our wellness resources and learn about consultation options at your own pace.\n\nIf you did not request this welcome email, you can ignore it.\n\nThe Nayacura team',
+    'newsletter_welcome',
   );
 }
 

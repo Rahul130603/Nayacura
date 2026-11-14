@@ -26,7 +26,6 @@ import { Reveal } from '@/components/ui/Reveal';
 import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
 import { Accordion } from '@/components/ui/Accordion';
-import { DemoNotice } from '@/components/ui/DemoNotice';
 import { ServiceIcon } from '@/components/ServiceIcon';
 
 const journey = [
@@ -353,7 +352,7 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      <section className="relative border-t border-white/[0.06] bg-plum py-20 sm:py-28">
+      <section className="relative border-t border-white/[0.06] bg-plum pt-16 pb-12 sm:pt-24 sm:pb-16">
         <div className="container-naya">
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
             <div>
@@ -372,11 +371,10 @@ export default function HowItWorks() {
             </div>
             <Accordion items={faqs} />
           </div>
-          <DemoNotice className="mt-10" />
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-midnight py-16 sm:py-20">
+      <section className="relative overflow-hidden bg-midnight pt-4 pb-16 sm:pt-6 sm:pb-20">
         <div className="container-naya">
           <div className="flex flex-col items-start justify-between gap-5 rounded-[28px] border border-lavender/15 bg-gradient-to-r from-burgundy/30 via-plum to-royal/20 p-7 sm:flex-row sm:items-center sm:p-9">
             <div>
