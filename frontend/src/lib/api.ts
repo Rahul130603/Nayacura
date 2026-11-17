@@ -89,7 +89,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 }
 
 export async function streamAi(
-  payload: { message: string; conversationId?: string | null; language?: ChatLanguage; consent: boolean },
+  payload: { message: string; conversationId?: string | null; language?: ChatLanguage; consent: boolean; voice?: boolean },
   onToken: (token: string) => void,
   signal?: AbortSignal,
   onSources?: (sources: AiSource[]) => void,

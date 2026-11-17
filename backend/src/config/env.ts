@@ -52,6 +52,8 @@ const schema = z.object({
   LIVEKIT_URL: z.string().optional(),
   LIVEKIT_API_KEY: z.string().optional(),
   LIVEKIT_API_SECRET: z.string().optional(),
+  PIPER_PYTHON: z.string().trim().optional(),
+  PIPER_TAMIL_MODEL: z.string().trim().optional(),
   LLM_API_KEY: z.string().optional(),
   SGAI_API_KEY: z.string().optional(),
   SGAI_ALLOWED_HOSTS: z.string().optional(),

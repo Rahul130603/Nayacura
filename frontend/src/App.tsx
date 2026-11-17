@@ -50,12 +50,12 @@ export default function App() {
           <Route path="how-it-works" element={<HowItWorks />} />
           <Route path="pricing" element={<Pricing />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="ai" element={<AI />} />
           <Route path="payment/:id" element={<CompletePayment />} />
           <Route path="legal/:slug" element={<Legal />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 
+        <Route path="ai" element={<AI />} />
         <Route path="book" element={<Booking />} />
         <Route path="consult/:id" element={<ConsultationRoom />} />
 

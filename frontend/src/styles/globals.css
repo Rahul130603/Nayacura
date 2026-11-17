@@ -43,11 +43,16 @@ body {
   overflow-x: hidden;
 }
 
-/* Match the compact desktop layout across routes while keeping touch layouts full size. */
+/* Match the compact desktop layout across routes while keeping touch layouts full size and full-screen workspaces (AI, Consultations) at true 1:1 scale. */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  body {
+  body:not(.fullscreen-app):not(:has(#ai-workspace)) {
     --desktop-scale: 0.8;
     zoom: var(--desktop-scale);
+  }
+
+  body.fullscreen-app,
+  body:has(#ai-workspace) {
+    zoom: 1 !important;
   }
 
   body .site-nav__about {
