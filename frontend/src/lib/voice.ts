@@ -32,6 +32,25 @@ export function cleanSpeechText(text: string): string {
     .trim();
 }
 
+// Keep each caption short enough to read on a phone.
+export function speechCaptionLines(text: string): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of text.match(/\S+/g) ?? []) {
+    if (line && line.length + word.length + 1 > 110) {
+      lines.push(line);
+      line = '';
+    }
+    line = line ? line + ' ' + word : word;
+    if (/[.!?…।]["')]*$/.test(word)) {
+      lines.push(line);
+      line = '';
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 const FEMALE_VOICE_KEYWORDS = [
   'female',
   'zira',
@@ -77,7 +96,7 @@ export function getBestFemaleVoice(
 
 export interface SpeakOptions {
   language?: string;
-  onStart?: () => void;
+  onCaption?: (line: string) => void;
   onEnd?: () => void;
   onError?: (err: unknown) => void;
   rate?: number;
@@ -89,7 +108,7 @@ export function speakFemaleVoice(
   options: SpeakOptions = {},
 ): { stop: () => void } {
   const synth = window.speechSynthesis;
-  const clean = cleanSpeechText(rawText);
+  const lines = speechCaptionLines(cleanSpeechText(rawText));
   let finished = false;
   let voiceTimer: number | undefined;
 
@@ -111,24 +130,34 @@ export function speakFemaleVoice(
     const voice = getBestFemaleVoice(synth.getVoices(), options.language);
     if (!voice) return;
     cleanup();
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.voice = voice;
-    utterance.lang = voice.lang;
-    utterance.pitch = options.pitch ?? 1;
-    utterance.rate = options.rate ?? 0.96;
-    utterance.onstart = () => {
-      if (!finished) options.onStart?.();
+    const speakLine = (index: number) => {
+      if (finished) return;
+      if (index === lines.length) {
+        finish();
+        return;
+      }
+      const line = lines[index];
+      const utterance = new SpeechSynthesisUtterance(line);
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+      utterance.pitch = options.pitch ?? 1;
+      utterance.rate = options.rate ?? 0.96;
+      utterance.onstart = () => {
+        if (!finished) options.onCaption?.(line);
+      };
+      utterance.onend = () => speakLine(index + 1);
+      utterance.onerror = (event) => finish(event);
+      try {
+        synth.speak(utterance);
+      } catch (error) {
+        finish(error);
+      }
     };
-    utterance.onend = () => finish();
-    utterance.onerror = (event) => finish(event);
-    try {
-      synth.speak(utterance);
-    } catch (error) {
-      finish(error);
-    }
+
+    speakLine(0);
   }
 
-  if (!synth || !clean) {
+  if (!synth || !lines.length) {
     queueMicrotask(() => finish(new Error('Speech playback unavailable')));
   } else {
     synth.cancel();

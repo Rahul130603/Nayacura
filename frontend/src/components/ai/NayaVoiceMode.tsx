@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Plus, X, Sparkles, Volume2, AlertCircle } from 'lucide-react';
 import { NayaVoiceOrb, type VoiceOrbState } from './NayaVoiceOrb';
-import { cleanSpeechText, speakFemaleVoice } from '@/lib/voice';
+import { cleanSpeechText, speakFemaleVoice, speechCaptionLines } from '@/lib/voice';
 import { api, ApiError, type ChatLanguage } from '@/lib/api';
 
 interface NayaVoiceModeProps {
@@ -24,7 +24,6 @@ export function NayaVoiceMode({
   const [audioLevel, setAudioLevel] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [userTranscript, setUserTranscript] = useState('');
-  const [interimTranscript, setInterimTranscript] = useState('');
   const [assistantSubtitle, setAssistantSubtitle] = useState('');
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
@@ -72,7 +71,6 @@ export function NayaVoiceMode({
       latestTranscriptRef.current = '';
       setPermissionError(null);
       setUserTranscript(textToProcess);
-      setInterimTranscript('');
       setOrbState('thinking');
 
       // Stop speech recognition while AI is thinking and replying
@@ -93,8 +91,6 @@ export function NayaVoiceMode({
           return;
         }
 
-        setAssistantSubtitle(responseText);
-
         let usePiper = false;
         const resumeListening = () => {
           if (turn.signal.aborted) return;
@@ -108,11 +104,18 @@ export function NayaVoiceMode({
         async function playPiperReply() {
           try {
             const speechLanguage = language === 'ta' ? 'tamil' : 'english';
+            const spokenText = cleanSpeechText(responseText).slice(0, 2400);
+            const captions = speechCaptionLines(spokenText);
+            let totalWeight = 0;
+            const captionEnds = captions.map((line) => {
+              totalWeight += line.length + 1;
+              return totalWeight;
+            });
             const response = await api<Response>('/ai/speech/' + speechLanguage, {
               method: 'POST',
               raw: true,
               signal: turn.signal,
-              body: { text: cleanSpeechText(responseText).slice(0, 2400) },
+              body: { text: spokenText },
             });
             const blob = await response.blob();
             if (turn.signal.aborted) return;
@@ -124,6 +127,7 @@ export function NayaVoiceMode({
               stopped = true;
               audio.onended = null;
               audio.onerror = null;
+              audio.ontimeupdate = null;
               audio.pause();
               URL.revokeObjectURL(url);
             };
@@ -137,9 +141,18 @@ export function NayaVoiceMode({
             speechSpeakerRef.current = { stop };
             audio.onended = () => { stop(); resumeListening(); };
             audio.onerror = fail;
+            audio.ontimeupdate = () => {
+              if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+              const position = (audio.currentTime / audio.duration) * totalWeight;
+              const index = captionEnds.findIndex((end) => position < end);
+              setAssistantSubtitle(captions[index < 0 ? captions.length - 1 : index] ?? '');
+            };
             try {
               await audio.play();
-              if (!turn.signal.aborted && !audio.ended) setOrbState('speaking');
+              if (!turn.signal.aborted && !audio.ended) {
+                setAssistantSubtitle(captions[0] ?? '');
+                setOrbState('speaking');
+              }
             } catch {
               fail();
             }
@@ -153,7 +166,8 @@ export function NayaVoiceMode({
         // Play female voice audio response
         speechSpeakerRef.current = speakFemaleVoice(responseText, {
           language,
-          onStart: () => {
+          onCaption: (line) => {
+            setAssistantSubtitle(line);
             setOrbState('speaking');
           },
           onEnd: () => {
@@ -237,8 +251,7 @@ export function NayaVoiceMode({
         const combined = (final + interim).trim();
         if (combined) {
           latestTranscriptRef.current = combined;
-          setUserTranscript(final || combined);
-          setInterimTranscript(interim);
+          setUserTranscript(combined);
 
           // Reset silence timer: if user stops speaking for 1.8s, submit query
           if (silenceTimerRef.current) {
@@ -303,7 +316,6 @@ export function NayaVoiceMode({
       setOrbState('idle');
       setIsMuted(false);
       setUserTranscript('');
-      setInterimTranscript('');
       setAssistantSubtitle('');
       setPermissionError(null);
       return;
@@ -411,12 +423,13 @@ export function NayaVoiceMode({
 
           {/* Status Label & Subtitles */}
           <div className="mt-8 min-h-[90px] flex flex-col items-center justify-center space-y-2 max-w-xl">
-            {permissionError ? (
+            {permissionError && (
               <div className="flex items-center gap-2 rounded-2xl border border-rose/30 bg-rose/10 px-4 py-2.5 text-sm text-rose">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{permissionError}</span>
               </div>
-            ) : orbState === 'listening' ? (
+            )}
+            {orbState === 'listening' ? (
               <>
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2.5 w-2.5">
@@ -428,9 +441,9 @@ export function NayaVoiceMode({
                   </span>
                 </div>
                 <p className="text-base sm:text-lg text-ivory/90 font-sans tracking-wide leading-relaxed min-h-[28px]">
-                  {interimTranscript || userTranscript ? (
+                  {userTranscript ? (
                     <span>
-                      “{userTranscript || interimTranscript}”
+                      “{userTranscript}”
                     </span>
                   ) : (
                     <span className="text-mauve/50 italic">
@@ -465,7 +478,7 @@ export function NayaVoiceMode({
                     Naya is speaking
                   </span>
                 </div>
-                <p className="text-base sm:text-lg text-ivory font-serif tracking-wide leading-relaxed line-clamp-3">
+                <p className="text-base sm:text-lg text-ivory font-serif break-words tracking-wide leading-relaxed">
                   “{assistantSubtitle}”
                 </p>
               </>
