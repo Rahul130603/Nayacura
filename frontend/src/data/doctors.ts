@@ -321,7 +321,7 @@ export const demoDoctors: (Doctor & { faqs: DoctorDetail['faqs'] })[] = [
       {
         question: 'What if I am having thoughts of self-harm?',
         answer:
-          'This platform is not an emergency service. If you are in immediate danger, contact local emergency services or Tele-MANAS on 14416. Do not wait for a routine appointment.',
+          'This platform is not an emergency service. If you are in immediate danger, contact local emergency services or go to the nearest emergency department. Do not wait for a routine appointment.',
       },
     ],
   },

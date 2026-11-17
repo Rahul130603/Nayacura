@@ -191,8 +191,8 @@ export default function ServiceDetail() {
                   </ul>
                   <p className="mt-5 border-t border-white/10 pt-4 font-body text-[10px] leading-relaxed text-mauve">
                     If you are in immediate danger, contact local emergency services. Nayacura is not
-                    an emergency provider. In India, Tele-MANAS on 14416 offers mental health crisis
-                    support.
+                    an emergency provider. For immediate danger, contact local emergency services or
+                    go to the nearest emergency department.
                   </p>
                 </div>
               </Reveal>

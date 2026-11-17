@@ -1357,7 +1357,7 @@ export const services: ServiceDetail[] = [
       {
         question: 'What if I am in crisis right now?',
         answer:
-          'This platform is not an emergency service. If you are in immediate danger, contact local emergency services or a trusted crisis line. In India, Tele-MANAS is available on 14416. Do not wait for a booking.',
+          'This platform is not an emergency service. If you are in immediate danger, contact local emergency services or go to the nearest emergency department. Do not wait for a booking.',
       },
       {
         question: 'Will my employer or family find out?',

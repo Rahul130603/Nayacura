@@ -174,7 +174,7 @@ export default function ArticleDetail() {
                       If this article has brought up a personal concern, you can browse specialist
                       profiles or book an initial conversation. You do not need a diagnosis to seek
                       care. If you are in crisis or immediate danger, contact local emergency services
-                      or Tele-MANAS on 14416.
+                      or go to the nearest emergency department.
                     </p>
                     <div className="mt-4 flex flex-wrap gap-3">
                       <ButtonLink to="/doctors" size="sm" arrow>

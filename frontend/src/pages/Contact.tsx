@@ -234,9 +234,7 @@ export default function Contact() {
                 </div>
                 <p className="mt-2 font-body text-[10px] leading-relaxed text-mauve">
                   Do not use this form. Contact local emergency services (112 in India), go to the
-                  nearest emergency department, or call Tele-MANAS on{' '}
-                  <a href="tel:14416" className="text-lavender underline">14416</a> for mental health
-                  crisis support.
+                  nearest emergency department.
                 </p>
               </div>
 

@@ -1158,7 +1158,7 @@ export default function Home() {
               </div>
               <p className="mt-5 max-w-md font-body text-[9px] leading-relaxed text-mauve/60">
                 Naya is not a doctor and cannot diagnose, prescribe or handle emergencies. For
-                urgent concerns, contact local emergency services or Tele-MANAS on 14416.
+                urgent concerns, contact local emergency services or go to the nearest emergency department.
               </p>
             </Reveal>
             <Reveal delay={0.12}>

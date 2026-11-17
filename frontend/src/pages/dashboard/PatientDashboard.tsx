@@ -1655,7 +1655,7 @@ export default function PatientDashboard() {
             <div className="rounded-2xl border border-rose/20 bg-burgundy/20 p-4">
               <p className="font-body text-[9px] leading-relaxed text-mauve">
                 <strong className="text-rose">Emergency?</strong> Support is not monitored for
-                emergencies. Contact local emergency services (112 in India) or Tele-MANAS on 14416.
+                emergencies. Contact local emergency services or go to the nearest emergency department.
               </p>
             </div>
           </div>

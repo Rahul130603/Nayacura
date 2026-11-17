@@ -93,7 +93,7 @@ export const legalPages: LegalPage[] = [
 <h2>3. AI limitations</h2>
 <p>Naya AI is an artificial intelligence assistant. It is not a doctor, therapist, nurse or emergency responder. It cannot examine you, diagnose you, prescribe medication or judge whether a symptom is serious in your particular case. It may produce incomplete or inaccurate information. Do not rely on it for clinical decisions.</p>
 <h2>4. Emergencies</h2>
-<p>This platform is not designed for emergencies. If you are in immediate danger, experiencing severe chest pain, significant bleeding, a suspected acute infection, suicidal thoughts or another urgent medical situation, contact local emergency services or go to the nearest emergency department. In India, Tele-MANAS is available on 14416 for mental health support. Do not wait for an online appointment.</p>
+<p>This platform is not designed for emergencies. If you are in immediate danger, experiencing severe chest pain, significant bleeding, a suspected acute infection, suicidal thoughts or another urgent medical situation, contact local emergency services or go to the nearest emergency department. Do not wait for an online appointment.</p>
 <h2>5. Teleconsultation limits</h2>
 <p>A video consultation cannot replace a physical examination, imaging or laboratory testing. A clinician may determine that remote care is not appropriate and ask you to attend in person. Withholding information, or using a false identity, can make care unsafe.</p>
 <h2>6. Medication and products</h2>
@@ -220,7 +220,7 @@ export const legalPages: LegalPage[] = [
 <h2>5. Privacy complaints</h2>
 <p>Privacy concerns should be reviewed by the person responsible for data protection. The final policy must state how to exercise rights under applicable law and how to complain to the relevant authority if an internal resolution is unsatisfactory.</p>
 <h2>6. Emergencies are different</h2>
-<p>Do not use the grievance form for an emergency. If you are in immediate danger, contact local emergency services or go to the nearest emergency department. In India, Tele-MANAS on 14416 provides mental health support. This platform does not provide crisis response.</p>
+<p>Do not use the grievance form for an emergency. If you are in immediate danger, contact local emergency services or go to the nearest emergency department. This platform does not provide crisis response.</p>
 <h2>7. Honest status</h2>
 <p>This prototype does not operate a real support desk or grievance process. Any timelines, officer details or escalation routes must be added only when they are genuinely operational. Publishing an unmonitored contact channel would be worse than stating clearly that this is a demo.</p>`,
   },
