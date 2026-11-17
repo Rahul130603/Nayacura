@@ -144,6 +144,7 @@ export default function AI() {
   const [selectedModel, setSelectedModel] = useState<ModelMode>('Naya Care');
   const [activeTab, setActiveTab] = useState<'chat' | 'task'>('chat');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchActive, setSearchActive] = useState(false);
@@ -241,6 +242,7 @@ export default function AI() {
   };
 
   function resetToNewChat() {
+    setMobileSidebarOpen(false);
     abortRef.current?.abort();
     setMessages([]);
     setConversationId(null);
@@ -393,15 +395,17 @@ export default function AI() {
         path="/ai"
       />
 
-      <div id="ai-workspace" className="relative flex h-dvh w-full overflow-hidden bg-midnight font-sans text-ivory">
+      <div id="ai-workspace" className="relative isolate flex h-dvh w-full overflow-hidden bg-midnight font-sans text-ivory">
         {/* ================= LEFT SIDEBAR (Gemini Style) ================= */}
         <aside
+          id="naya-chat-sidebar"
           className={cn(
-            'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.08] bg-[#0c0814] transition-all duration-300 ease-in-out lg:static',
-            sidebarOpen ? 'w-[260px]' : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0',
+            'absolute inset-y-0 left-0 z-50 w-[min(260px,85%)] shrink-0 flex-col overflow-hidden border-r border-white/[0.08] bg-[#0c0814] lg:static lg:w-[260px]',
+            mobileSidebarOpen ? 'flex' : 'hidden',
+            sidebarOpen ? 'lg:flex' : 'lg:hidden',
           )}
         >
-          <div className="flex h-full w-[260px] flex-col overflow-hidden">
+          <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
             {/* Sidebar Top: Logo + Controls */}
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
               <Link to="/ai" onClick={resetToNewChat} className="flex items-center gap-2 group">
@@ -425,7 +429,10 @@ export default function AI() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={() => {
+                    if (mobileSidebarOpen) setMobileSidebarOpen(false);
+                    else setSidebarOpen(false);
+                  }}
                   className="rounded-lg p-1.5 text-mauve hover:bg-white/[0.06] hover:text-ivory transition-colors"
                   title="Collapse sidebar"
                 >
@@ -514,7 +521,10 @@ export default function AI() {
                     <div key={item.id} className="group relative flex items-center">
                       <button
                         type="button"
-                        onClick={() => void loadConversation(item.id)}
+                        onClick={() => {
+                          setMobileSidebarOpen(false);
+                          void loadConversation(item.id);
+                        }}
                         className={cn(
                           'flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left font-sans text-xs transition-colors pr-8 truncate',
                           isActive
@@ -571,23 +581,35 @@ export default function AI() {
         </aside>
 
         {/* Backdrop for mobile sidebar */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+        {mobileSidebarOpen && (
+          <button
+            type="button"
+            aria-label="Close chat sidebar"
+            className="absolute inset-0 z-40 bg-black/70 lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
           />
         )}
 
         {/* ================= MAIN CHAT WORKSPACE ================= */}
-        <div className="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-b from-[#11091a]/40 via-midnight to-midnight">
+        <div className="relative z-0 flex min-w-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-[#11091a]/40 via-midnight to-midnight">
           {/* Top Navbar */}
-          <header className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5 sm:px-6">
-            <div className="flex items-center gap-3">
+          <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-white/[0.06] px-3 py-2.5 sm:px-6">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                aria-label="Open chat sidebar"
+                aria-controls="naya-chat-sidebar"
+                aria-expanded={mobileSidebarOpen}
+                onClick={() => setMobileSidebarOpen(true)}
+                className="rounded-lg p-2 text-mauve hover:bg-white/[0.06] hover:text-ivory lg:hidden"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </button>
               {!sidebarOpen && (
                 <button
                   type="button"
                   onClick={() => setSidebarOpen(true)}
-                  className="rounded-lg p-1.5 text-mauve hover:bg-white/[0.06] hover:text-ivory transition-colors"
+                  className="hidden rounded-lg p-1.5 text-mauve hover:bg-white/[0.06] hover:text-ivory transition-colors lg:block"
                   title="Expand sidebar"
                 >
                   <PanelLeft className="h-4 w-4" />
@@ -601,7 +623,7 @@ export default function AI() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               {/* Model Mode Dropdown */}
               <div className="relative">
                 <button
