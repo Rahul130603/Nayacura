@@ -1,4 +1,4 @@
-"""Install the local Tamil voice into backend/.piper."""
+"""Install the local Tamil and English voices into backend/.piper."""
 import os
 import shutil
 import subprocess
@@ -19,14 +19,22 @@ subprocess.run(
     check=True,
 )
 
-model = "ta_IN-rasa_female-medium.onnx"
-source = "https://huggingface.co/tinisoft/piper-ta_IN-rasa_female-medium/resolve/89e15ed"
-for name in (model, model + ".json"):
-    target = directory / name
-    if not target.exists():
-        partial = target.with_suffix(target.suffix + ".partial")
-        with urlopen(f"{source}/{name}", timeout=60) as response, partial.open("wb") as destination:
-            shutil.copyfileobj(response, destination)
-        partial.replace(target)
+voices = {
+    "ta_IN-rasa_female-medium.onnx": (
+        "https://huggingface.co/tinisoft/piper-ta_IN-rasa_female-medium/resolve/89e15ed"
+    ),
+    "en_US-ljspeech-medium.onnx": (
+        "https://huggingface.co/rhasspy/piper-voices/resolve/1162a9173d0ce503555aed757976b7a9912eae4c"
+        "/en/en_US/ljspeech/medium"
+    ),
+}
+for model, source in voices.items():
+    for name in (model, model + ".json"):
+        target = directory / name
+        if not target.exists():
+            partial = target.with_suffix(target.suffix + ".partial")
+            with urlopen(f"{source}/{name}", timeout=60) as response, partial.open("wb") as destination:
+                shutil.copyfileobj(response, destination)
+            partial.replace(target)
 
-print("Piper Tamil female voice installed.")
+print("Piper Tamil and English voices installed.")

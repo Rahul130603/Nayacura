@@ -18,18 +18,20 @@ with wave.open(audio, "wb") as wav:
 sys.stdout.buffer.write(audio.getvalue())
 `;
 
-export function getTamilPiper() {
+export function getPiperVoice(language: 'tamil' | 'english') {
   const bundledPython = process.platform === 'win32' ? 'venv/Scripts/python.exe' : 'venv/bin/python';
   const python = env.PIPER_PYTHON || resolve(piperDir, bundledPython);
-  const model = env.PIPER_TAMIL_MODEL || resolve(piperDir, 'ta_IN-rasa_female-medium.onnx');
+  const model = language === 'tamil'
+    ? env.PIPER_TAMIL_MODEL || resolve(piperDir, 'ta_IN-rasa_female-medium.onnx')
+    : env.PIPER_ENGLISH_MODEL || resolve(piperDir, 'en_US-ljspeech-medium.onnx');
   if ((!env.PIPER_PYTHON && !existsSync(python)) || !existsSync(model) || !existsSync(model + '.json')) {
     return null;
   }
   return { python, model };
 }
 
-export function synthesizeTamil(
-  piper: NonNullable<ReturnType<typeof getTamilPiper>>,
+export function synthesizePiper(
+  piper: NonNullable<ReturnType<typeof getPiperVoice>>,
   text: string,
   signal: AbortSignal,
 ): Promise<Buffer> {

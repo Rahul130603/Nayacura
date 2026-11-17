@@ -12,37 +12,38 @@ import { logger } from '../utils/logger';
 import { NotFoundError } from '../utils/errors';
 import { retrieveKnowledge, type KnowledgeSource } from '../services/aiKnowledge';
 
-import { getTamilPiper, synthesizeTamil } from '../services/piperSpeech';
+import { getPiperVoice, synthesizePiper } from '../services/piperSpeech';
 
 export const aiRouter = Router();
 
-let synthesizingTamil = false;
-const tamilSpeechSchema = z.object({ text: z.string().trim().min(1).max(2400) });
+let synthesizingSpeech = false;
+const speechSchema = z.object({ text: z.string().trim().min(1).max(2400) });
 
-aiRouter.post('/speech/tamil', aiLimiter, validate(tamilSpeechSchema), asyncHandler(async (req, res) => {
-  const piper = getTamilPiper();
+aiRouter.post('/speech/:language(tamil|english)', aiLimiter, validate(speechSchema), asyncHandler(async (req, res) => {
+  const language = req.params.language === 'tamil' ? 'tamil' : 'english';
+  const piper = getPiperVoice(language);
   if (!piper) {
-    res.status(503).json({ message: 'Piper Tamil voice is not installed on the server.' });
+    res.status(503).json({ message: 'This Piper voice is not installed on the server.' });
     return;
   }
-  if (synthesizingTamil) {
-    res.status(429).json({ message: 'Tamil voice is busy. Please try again.' });
+  if (synthesizingSpeech) {
+    res.status(429).json({ message: 'Voice playback is busy. Please try again.' });
     return;
   }
 
-  synthesizingTamil = true;
+  synthesizingSpeech = true;
   const controller = new AbortController();
   const cancel = () => controller.abort();
   res.once('close', cancel);
   try {
-    const { text } = req.body as z.infer<typeof tamilSpeechSchema>;
-    const audio = await synthesizeTamil(piper, text, controller.signal);
+    const { text } = req.body as z.infer<typeof speechSchema>;
+    const audio = await synthesizePiper(piper, text, controller.signal);
     if (!res.destroyed) res.set('Cache-Control', 'no-store').type('audio/wav').send(audio);
   } catch {
-    if (!res.destroyed) res.status(502).json({ message: 'Piper Tamil voice could not generate audio.' });
+    if (!res.destroyed) res.status(502).json({ message: 'Piper could not generate voice audio.' });
   } finally {
     res.off('close', cancel);
-    synthesizingTamil = false;
+    synthesizingSpeech = false;
   }
 }));
 

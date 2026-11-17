@@ -21,3 +21,13 @@ Based on [AI4Bharat Rasa](https://huggingface.co/datasets/ai4bharat/Rasa),
 Praveen Srinivasa Varadhan, Ashwin Sankar, Giri Raju, and Mitesh M. Khapra,
 *Rasa: Building Expressive Speech Synthesis Systems for Indian Languages in
 Low-resource Settings*, INTERSPEECH 2024.
+
+## English playback fallback
+
+The same installer also downloads the English female voice. On existing
+Nayacura deployments, rerun the installer after pulling the code and before
+restarting the backend. The optional `PIPER_ENGLISH_MODEL` setting accepts
+an absolute ONNX path with its `.onnx.json` beside it.
+
+English voice: [Piper en_US-ljspeech-medium](https://huggingface.co/rhasspy/piper-voices/tree/main/en/en_US/ljspeech/medium),
+based on the public domain [LJ Speech Dataset](https://keithito.com/LJ-Speech-Dataset/).

@@ -107,7 +107,8 @@ export function NayaVoiceMode({
 
         async function playPiperReply() {
           try {
-            const response = await api<Response>('/ai/speech/tamil', {
+            const speechLanguage = language === 'ta' ? 'tamil' : 'english';
+            const response = await api<Response>('/ai/speech/' + speechLanguage, {
               method: 'POST',
               raw: true,
               signal: turn.signal,
@@ -130,7 +131,7 @@ export function NayaVoiceMode({
               if (stopped) return;
               stop();
               if (turn.signal.aborted) return;
-              setPermissionError('Tamil audio could not play. The reply is available in chat.');
+              setPermissionError('Voice audio could not play. The reply is available in chat.');
               resumeListening();
             };
             speechSpeakerRef.current = { stop };
@@ -144,7 +145,7 @@ export function NayaVoiceMode({
             }
           } catch (error) {
             if (turn.signal.aborted) return;
-            setPermissionError(error instanceof ApiError ? error.message : 'Tamil audio could not play.');
+            setPermissionError(error instanceof ApiError ? error.message : 'Voice audio could not play.');
             resumeListening();
           }
         }
@@ -160,12 +161,12 @@ export function NayaVoiceMode({
           },
           onError: () => {
             if (turn.signal.aborted) return;
-            if (language === 'ta') {
-              usePiper = true;
-              void playPiperReply();
+            if (language === 'tanglish') {
+              setPermissionError('Voice playback is unavailable. The reply is available in chat.');
               return;
             }
-            setPermissionError('Voice playback is unavailable. The reply is available in chat.');
+            usePiper = true;
+            void playPiperReply();
           },
         });
       } catch (err) {
