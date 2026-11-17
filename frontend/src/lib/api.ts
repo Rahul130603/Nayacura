@@ -1,5 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 export type ChatLanguage = 'en' | 'ta' | 'tanglish';
+export type AiSource = { title: string; url: string };
 
 export class ApiError extends Error {
   status: number;
@@ -91,6 +92,7 @@ export async function streamAi(
   payload: { message: string; conversationId?: string | null; language?: ChatLanguage; consent: boolean },
   onToken: (token: string) => void,
   signal?: AbortSignal,
+  onSources?: (sources: AiSource[]) => void,
 ) {
   await ensureCsrf();
   const csrf = readCookie('nayacura_csrf');
@@ -134,6 +136,10 @@ export async function streamAi(
       const data = JSON.parse(line.slice(6));
       if (data.type === 'meta' && data.conversationId) conversationId = data.conversationId;
       if (data.type === 'token') onToken(data.token);
+      if (data.type === 'sources' && Array.isArray(data.sources)) {
+        onSources?.(data.sources.filter((source: AiSource | null): source is AiSource =>
+          Boolean(source && typeof source.title === 'string' && typeof source.url === 'string' && source.url.startsWith('https://'))));
+      }
       if (data.type === 'error') throw new ApiError(data.message || 'Naya AI is unavailable.', 502);
     }
   }
@@ -143,10 +149,12 @@ export async function streamAi(
 export async function uploadMedicalDocument(
   file: File,
   category: 'REPORT' | 'PRESCRIPTION' | 'REFERRAL' | 'OTHER' = 'OTHER',
+  appointmentId?: string,
 ) {
   await ensureCsrf();
   const csrf = readCookie('nayacura_csrf');
-  const res = await fetch(`${API_BASE}/patient/documents`, {
+  const endpoint = appointmentId ? `/appointments/${encodeURIComponent(appointmentId)}/files` : '/patient/documents';
+  const res = await fetch(`${API_BASE}${endpoint}`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -161,7 +169,7 @@ export async function uploadMedicalDocument(
     let message = 'The document could not be uploaded.';
     try {
       const data = await res.json();
-      message = data.message || message;
+      message = data.details?.file?.[0] || data.details?.status?.[0] || data.message || message;
     } catch {
       /* ignore */
     }

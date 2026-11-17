@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { ArrowLeft, HeartHandshake, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Award, HeartHandshake, LockKeyhole, ShieldCheck, Stethoscope } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { RouteEffects } from '@/components/layout/RouteEffects';
 import { cn } from '@/lib/utils';
@@ -7,6 +7,57 @@ import { cn } from '@/lib/utils';
 export function AuthLayout() {
   const { pathname } = useLocation();
   const isLogin = /^\/(?:doctor\/|admin\/)?login\/?$/.test(pathname);
+  const isDoctorRegister = pathname === '/doctor/register';
+
+  if (isDoctorRegister) {
+    return (
+      <div className="min-h-screen bg-midnight text-ivory flex flex-col justify-between px-5 sm:px-8 lg:px-12 py-3 lg:py-5">
+        <RouteEffects />
+        <a
+          href="#auth-content"
+          className="fixed left-4 top-4 z-[200] -translate-y-24 rounded-full bg-lavender px-4 py-2 font-sans text-xs font-semibold text-midnight transition-transform focus:translate-y-0"
+        >
+          Skip to form
+        </a>
+        <header className="flex items-center justify-between pb-3 border-b border-white/[0.08] shrink-0">
+          <Logo />
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 font-sans text-[10px] font-semibold uppercase tracking-[0.14em] text-mauve transition-colors hover:text-ivory"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to site
+          </Link>
+        </header>
+
+        <main id="auth-content" className="flex-1 flex flex-col justify-center py-3 lg:py-5">
+          <div className="w-full max-w-6xl xl:max-w-7xl mx-auto">
+            <Outlet />
+          </div>
+        </main>
+
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08] pt-3 shrink-0">
+          <p className="font-body text-[9px] text-mauve/50">
+            © {new Date().getFullYear()} Nayacura · Development demo
+          </p>
+          <div className="flex gap-4">
+            {[
+              ['Privacy', '/legal/privacy'],
+              ['Terms', '/legal/terms'],
+              ['Support', '/contact'],
+            ].map(([label, to]) => (
+              <Link
+                key={to}
+                to={to}
+                className="font-body text-[9px] text-mauve/50 transition-colors hover:text-ivory"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-midnight">

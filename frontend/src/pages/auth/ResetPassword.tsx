@@ -27,6 +27,10 @@ type FormValues = z.infer<typeof schema>;
 export default function ResetPassword() {
   const [params] = useSearchParams();
   const token = params.get('token') || '';
+  const clinician = params.get('portal') === 'doctor';
+  const setup = clinician && params.get('setup') === '1';
+  const signIn = clinician ? '/doctor/login' : '/login';
+  const recovery = clinician ? '/forgot-password?portal=doctor' : '/forgot-password';
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [show, setShow] = useState(false);
@@ -60,7 +64,7 @@ export default function ResetPassword() {
         <p className="mt-3 font-body text-[12px] leading-relaxed text-mauve">
           A valid password reset link is required. Request a new one from the sign-in page.
         </p>
-        <Button onClick={() => window.location.assign('/forgot-password')} className="mt-6">
+        <Button onClick={() => window.location.assign(recovery)} className="mt-6">
           Request a new link
         </Button>
       </div>
@@ -76,18 +80,18 @@ export default function ResetPassword() {
             <div className="grid h-12 w-12 place-items-center rounded-full border border-lavender/20 bg-lavender/10 text-lavender">
               <CheckCircle2 className="h-5 w-5" />
             </div>
-            <h1 className="display mt-5 text-4xl">Password updated.</h1>
+            <h1 className="display mt-5 text-4xl">{setup ? 'Password set.' : 'Password updated.'}</h1>
             <p className="mt-3 font-body text-[12px] leading-relaxed text-mauve">
-              For security, all other sessions have been signed out. Sign in with your new password.
+              {setup ? 'Sign in to the Clinician Portal with your professional email and new password.' : 'For security, all other sessions have been signed out. Sign in with your new password.'}
             </p>
-            <Button onClick={() => window.location.assign('/login')} className="mt-6" arrow>
+            <Button onClick={() => window.location.assign(signIn)} className="mt-6" arrow>
               Go to sign in
             </Button>
           </>
         ) : (
           <>
-            <p className="eyebrow mb-4">Account recovery</p>
-            <h1 className="display text-[clamp(2.5rem,4.5vw,3.8rem)]">Choose a new password.</h1>
+            <p className="eyebrow mb-4">{setup ? 'Clinician account setup' : 'Account recovery'}</p>
+            <h1 className="display text-[clamp(2.5rem,4.5vw,3.8rem)]">{setup ? 'Set your password.' : 'Choose a new password.'}</h1>
             <p className="mt-3 font-body text-[12px] leading-relaxed text-mauve">
               Use at least 10 characters with a mix of letters and numbers. Do not reuse a password
               from another service.
@@ -134,7 +138,7 @@ export default function ResetPassword() {
                 Update password
               </Button>
               <Link
-                to="/login"
+                to={signIn}
                 className="flex items-center justify-center gap-2 font-sans text-[10px] text-mauve hover:text-ivory"
               >
                 <ArrowLeft className="h-3 w-3" /> Back to sign in

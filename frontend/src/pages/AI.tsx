@@ -119,10 +119,7 @@ export default function AI() {
               <div className="rounded-[22px] border border-rose/20 bg-rose/[0.04] p-5">
                 <p className="font-sans text-[10px] font-semibold text-ivory">Emergency support</p>
                 <p className="mt-2 font-body text-[9.5px] leading-relaxed text-mauve">
-                  Naya cannot handle an emergency. Contact local emergency services (112 in India) or
-                  Tele-MANAS on{' '}
-                  <a href="tel:14416" className="text-lavender underline">14416</a>. Do not wait for
-                  an AI reply.
+                  In an emergency, call local emergency services or go to the nearest emergency department.
                 </p>
               </div>
 

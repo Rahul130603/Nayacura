@@ -26,6 +26,7 @@ import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { formatDateTime, formatTime, cn } from '@/lib/utils';
 import { Logo } from '@/components/layout/Logo';
+import { ConsultationFiles } from '@/components/consultation/ConsultationFiles';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DoctorAvatar } from '@/components/ui/DoctorAvatar';
@@ -582,6 +583,9 @@ export default function ConsultationRoom() {
           </div>
 
           <aside className="w-full shrink-0 space-y-3 lg:w-[310px]">
+            {appointment.mode === 'ONLINE' && (
+              <ConsultationFiles key={appointment.id} appointmentId={appointment.id} isDoctor={isDoctor} />
+            )}
             <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-5">
               <div className="flex items-center justify-between">
                 <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.17em] text-mauve">

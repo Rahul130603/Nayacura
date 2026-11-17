@@ -37,6 +37,12 @@ import { createPaymentOrder, fetchAndValidateRazorpayPayment, verifyRazorpaySign
 import { sendBookingCancellation, sendBookingConfirmation } from '../services/mailer';
 import { audit } from '../utils/audit';
 import { logger } from '../utils/logger';
+import {
+  downloadMedicalDocument,
+  medicalDocumentBody,
+  serializeMedicalDocument,
+  storeMedicalDocument,
+} from '../services/medicalDocuments';
 
 export const appointmentsRouter = Router();
 
@@ -82,6 +88,65 @@ async function assertAppointmentAccess(
   }
   return { patient, doctor };
 }
+
+const consultationFiles = Router({ mergeParams: true });
+appointmentsRouter.use('/:id/files', requireAuth, consultationFiles);
+
+consultationFiles.use(asyncHandler(async (req, res, next) => {
+  const appointment = await loadAppointment(req.params.id);
+  if (!appointment || appointment.mode !== 'ONLINE') throw new NotFoundError('Video appointment not found.');
+  const { doctor } = await assertAppointmentAccess(req, appointment);
+  res.locals.consultationFiles = { appointment, isDoctor: Boolean(doctor) };
+  next();
+}));
+
+type ConsultationFiles = {
+  appointment: NonNullable<Awaited<ReturnType<typeof loadAppointment>>>;
+  isDoctor: boolean;
+};
+
+consultationFiles.get('/', asyncHandler(async (_req, res) => {
+  const { appointment, isDoctor } = res.locals.consultationFiles as ConsultationFiles;
+  const documents = await prisma.medicalDocument.findMany({
+    where: { appointmentId: appointment.id, patientId: appointment.patientId, visibility: 'CARE_TEAM' },
+    orderBy: { createdAt: 'desc' },
+  });
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.json({ documents: documents.map(serializeMedicalDocument), canUpload: canShareConsultationFile(appointment, isDoctor) });
+}));
+
+function canShareConsultationFile(appointment: ConsultationFiles['appointment'], isDoctor: boolean) {
+  if (appointment.status === 'IN_PROGRESS') return true;
+  if (!isDoctor) return appointment.status === 'CONFIRMED';
+  return appointment.status === 'COMPLETED' || (
+    appointment.status === 'CONFIRMED' && Boolean(appointment.consultation?.consentRecordedAt) &&
+    withinJoinWindow(appointment.startAt, appointment.endAt)
+  );
+}
+
+consultationFiles.post('/', medicalDocumentBody, asyncHandler(async (req, res) => {
+  const { appointment, isDoctor } = res.locals.consultationFiles as ConsultationFiles;
+  if (!canShareConsultationFile(appointment, isDoctor)) {
+    throw new ValidationError({ status: [isDoctor
+      ? 'Prescriptions can be shared during or after a consultation.'
+      : 'Reports can be shared before or during a confirmed consultation.'] });
+  }
+  const document = await storeMedicalDocument(req, {
+    patientId: appointment.patientId,
+    appointmentId: appointment.id,
+    clinicianPrescription: isDoctor,
+  });
+  res.status(201).json({ document: serializeMedicalDocument(document) });
+}));
+
+consultationFiles.get('/:fileId/download', asyncHandler(async (req, res) => {
+  const { appointment } = res.locals.consultationFiles as ConsultationFiles;
+  const document = await prisma.medicalDocument.findFirst({
+    where: { id: req.params.fileId, appointmentId: appointment.id, patientId: appointment.patientId, visibility: 'CARE_TEAM' },
+  });
+  if (!document) throw new NotFoundError('Document not found.');
+  await downloadMedicalDocument(req, res, document);
+}));
 
 appointmentsRouter.post(
   '/',

@@ -27,6 +27,7 @@ export function DashboardShell({
   subtitle,
   navItems,
   children,
+  headerAction,
   accent = 'lavender',
 }: {
   portal: string;
@@ -34,6 +35,7 @@ export function DashboardShell({
   subtitle: string;
   navItems: DashboardNavItem[];
   children: ReactNode;
+  headerAction?: ReactNode;
   accent?: 'lavender' | 'rose' | 'burgundy';
 }) {
   const { user, logout } = useAuth();
@@ -243,9 +245,9 @@ export function DashboardShell({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden items-center gap-1.5 rounded-full border border-lavender/15 bg-lavender/[0.04] px-3 py-1.5 font-body text-[8.5px] text-lavender sm:inline-flex">
+              {headerAction ?? <span className="hidden items-center gap-1.5 rounded-full border border-lavender/15 bg-lavender/[0.04] px-3 py-1.5 font-body text-[8.5px] text-lavender sm:inline-flex">
                 <span className="h-1.5 w-1.5 rounded-full bg-lavender" /> Demo environment
-              </span>
+              </span>}
               <div
                 ref={accountRef}
                 className="relative"

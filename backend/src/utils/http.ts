@@ -74,6 +74,10 @@ export function errorHandler(
     });
   }
 
+  if ((error as { type?: string })?.type === 'entity.too.large') {
+    return res.status(413).json({ message: 'The upload exceeds the size limit.', code: 'PAYLOAD_TOO_LARGE' });
+  }
+
   logger.error('Unhandled request error', {
     path: req.path,
     method: req.method,

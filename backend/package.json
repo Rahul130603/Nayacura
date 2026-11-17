@@ -8,6 +8,7 @@
     "build": "npm run db:generate && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty false",
+    "ai:import": "tsx src/scripts/importAiSource.ts",
     "db:generate": "node prisma/generate-client.cjs",
     "db:push": "prisma db push --schema prisma/schema.prisma",
     "db:seed": "tsx prisma/seed.ts",

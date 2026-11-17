@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
@@ -10,7 +10,6 @@ import {
   CalendarDays,
   Check,
   ChevronRight,
-  CircleDollarSign,
   Clock3,
   FileSignature,
   FileText,
@@ -29,6 +28,7 @@ import {
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { DashboardShell, type DashboardNavItem } from '@/components/layout/DashboardShell';
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { Seo } from '@/components/Seo';
 import { Badge } from '@/components/ui/Badge';
 import { Button, ButtonLink } from '@/components/ui/Button';
@@ -36,7 +36,7 @@ import { Modal } from '@/components/ui/Modal';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/States';
 import { Switch } from '@/components/ui/Switch';
 import { useToast } from '@/components/ui/Toast';
-import { cn, formatCurrency, formatDate, formatDateTime, formatTime } from '@/lib/utils';
+import { cn, formatDate, formatDateTime, formatTime } from '@/lib/utils';
 import type { Appointment } from '@/types';
 
 type DoctorOverview = {
@@ -64,8 +64,6 @@ type DoctorOverview = {
     today: number;
     upcoming: number;
     completed: number;
-    monthEarningsPaise: number;
-    lifetimeEarningsPaise: number;
   };
 };
 
@@ -101,24 +99,6 @@ type DoctorProfileData = {
   specializations: string[];
   credentials: { id: string; title: string; institution: string | null; verified: boolean }[];
   clinics: { name: string; city: string }[];
-};
-
-type EarningsData = {
-  earnings: {
-    lifetimePaise: number;
-    pendingSettlementPaise: number;
-    currency: string;
-    demoNote: string;
-  };
-  transactions: {
-    id: string;
-    bookingId: string;
-    patientName: string;
-    totalPaise: number;
-    status: string;
-    paidAt: string | null;
-    refunds: { amountPaise: number; status: string }[];
-  }[];
 };
 
 type ClinicalNote = { id: string; content: string; createdAt: string; updatedAt: string };
@@ -180,10 +160,6 @@ export default function DoctorDashboard() {
     queryKey: ['doctor-profile'],
     queryFn: () => api<{ profile: DoctorProfileData }>('/doctor/profile'),
   });
-  const earningsQuery = useQuery({
-    queryKey: ['doctor-earnings'],
-    queryFn: () => api<EarningsData>('/doctor/earnings'),
-  });
 
   const [appointmentFilter, setAppointmentFilter] = useState<'today' | 'upcoming' | 'all' | 'requests'>('upcoming');
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
@@ -213,7 +189,6 @@ export default function DoctorDashboard() {
   const overview = overviewQuery.data;
   const appointments = appointmentsQuery.data?.appointments || [];
   const profile = profileQuery.data?.profile;
-  const earnings = earningsQuery.data;
 
   useEffect(() => {
     if (availabilityQuery.data) {
@@ -475,7 +450,6 @@ export default function DoctorDashboard() {
     { key: 'appointments', label: 'Appointments', icon: CalendarDays, badge: overview?.stats.today },
     { key: 'availability', label: 'Availability', icon: CalendarClock },
     { key: 'clinical', label: 'Clinical records', icon: FileSignature },
-    { key: 'earnings', label: 'Earnings', icon: CircleDollarSign },
     { key: 'profile', label: 'Professional profile', icon: UserRound },
     { key: 'notifications', label: 'Notifications', icon: Bell },
   ];
@@ -485,10 +459,15 @@ export default function DoctorDashboard() {
     appointments: 'Appointments',
     availability: 'Availability management',
     clinical: 'Clinical records',
-    earnings: 'Earnings overview',
     profile: 'Professional profile',
     notifications: 'Notifications',
   };
+
+  if (section === 'earnings') {
+    const next = new URLSearchParams(params);
+    next.delete('section');
+    return <Navigate to={{ search: next.toString() }} replace />;
+  }
 
   if (overviewQuery.isError) {
     return (
@@ -512,7 +491,7 @@ export default function DoctorDashboard() {
     <>
       <Seo
         title="Clinician Dashboard"
-        description="Professional appointment, availability, clinical and earnings workspace."
+        description="Professional workspace for appointments, availability and clinical records."
         path="/doctor"
         noIndex
       />
@@ -526,8 +505,8 @@ export default function DoctorDashboard() {
         {overviewQuery.isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-36 w-full" />
-            <div className="grid gap-3 sm:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, index) => (
+            <div className="grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
                 <Skeleton key={index} className="h-28" />
               ))}
             </div>
@@ -561,16 +540,11 @@ export default function DoctorDashboard() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-3">
               {[
                 { label: 'Today', value: overview?.stats.today || 0, icon: CalendarDays },
                 { label: 'This week', value: overview?.stats.upcoming || 0, icon: CalendarClock },
                 { label: 'Completed', value: overview?.stats.completed || 0, icon: Check },
-                {
-                  label: 'Month earnings',
-                  value: formatCurrency(overview?.stats.monthEarningsPaise || 0),
-                  icon: CircleDollarSign,
-                },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -748,6 +722,11 @@ export default function DoctorDashboard() {
                         {appointment.canJoin && (
                           <ButtonLink to={`/consult/${appointment.id}`} size="sm" className="min-h-11">
                             Join video
+                          </ButtonLink>
+                        )}
+                        {appointment.mode === 'ONLINE' && !appointment.canJoin && ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(appointment.status) && (
+                          <ButtonLink to={`/consult/${appointment.id}`} size="sm" variant="secondary">
+                            Consultation files
                           </ButtonLink>
                         )}
                         {appointment.status === 'CONFIRMED' && (
@@ -1071,74 +1050,6 @@ export default function DoctorDashboard() {
               )}
             </div>
           </div>
-        ) : section === 'earnings' ? (
-          <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[22px] border border-lavender/15 bg-gradient-to-br from-burgundy/30 to-royal/15 p-5">
-                <p className="font-body text-[9px] uppercase tracking-[0.15em] text-mauve">Lifetime demo earnings</p>
-                <p className="mt-2 font-display text-4xl text-ivory">
-                  {formatCurrency(earnings?.earnings.lifetimePaise || 0)}
-                </p>
-                <p className="mt-2 font-body text-[8.5px] leading-relaxed text-mauve/60">
-                  Gross demo amounts, not settled funds.
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-5">
-                <p className="font-body text-[9px] uppercase tracking-[0.15em] text-mauve">Pending settlement</p>
-                <p className="mt-2 font-display text-4xl text-ivory">
-                  {formatCurrency(earnings?.earnings.pendingSettlementPaise || 0)}
-                </p>
-                <p className="mt-2 font-body text-[8.5px] leading-relaxed text-mauve/60">
-                  No bank settlement is implemented in this demo.
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.025] p-5">
-                <p className="font-body text-[9px] uppercase tracking-[0.15em] text-mauve">Transactions</p>
-                <p className="mt-2 font-display text-4xl text-ivory">{earnings?.transactions.length || 0}</p>
-                <p className="mt-2 font-body text-[8.5px] leading-relaxed text-mauve/60">
-                  Paid demo consultations only.
-                </p>
-              </div>
-            </div>
-            <div className="overflow-hidden rounded-[22px] border border-white/[0.08] bg-white/[0.02]">
-              <div className="border-b border-white/[0.07] px-5 py-4">
-                <p className="font-sans text-[11px] font-semibold text-ivory">Transaction records</p>
-              </div>
-              {earnings?.transactions.length ? (
-                <div className="divide-y divide-white/[0.06]">
-                  {earnings.transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-                      <div>
-                        <p className="font-sans text-[10px] text-ivory">{transaction.patientName}</p>
-                        <p className="mt-0.5 font-body text-[8px] text-mauve">
-                          {transaction.bookingId} · {transaction.paidAt ? formatDate(transaction.paidAt) : '—'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-sans text-[11px] font-semibold text-ivory">{formatCurrency(transaction.totalPaise)}</p>
-                        <p className="font-body text-[8px] text-mauve">
-                          {transaction.status === 'DEMO_PAID' ? 'Demo paid' : transaction.status}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-5">
-                  <EmptyState
-                    className="py-8"
-                    icon={<CircleDollarSign className="h-5 w-5" />}
-                    title="No demo earnings yet"
-                    description="Completed demo payments will appear here. Real settlement, platform fees and tax withholding are not implemented."
-                  />
-                </div>
-              )}
-            </div>
-            <p className="rounded-xl border border-white/[0.07] px-4 py-3 font-body text-[9px] text-mauve">
-              {earnings?.earnings.demoNote ||
-                'Gross demonstration amounts only. No settlement, platform fee, tax withholding or bank transfer is implemented.'}
-            </p>
-          </div>
         ) : section === 'profile' ? (
           <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
             <form onSubmit={(event) => void saveProfile(event)} className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5 sm:p-6">
@@ -1232,6 +1143,7 @@ export default function DoctorDashboard() {
             </form>
 
             <div className="space-y-3">
+              <ChangePasswordForm />
               <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5">
                 <p className="font-sans text-[11px] font-semibold text-ivory">Credential summary</p>
                 <p className="mt-1 font-body text-[9px] text-mauve">

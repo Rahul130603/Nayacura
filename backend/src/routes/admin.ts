@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { promises as fs } from 'node:fs';
 import { z } from 'zod';
 import { prisma } from '../config/prisma';
 import { asyncHandler, validate } from '../utils/http';
@@ -11,6 +12,10 @@ import {
 } from '../validators/schemas';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { audit } from '../utils/audit';
+import { env } from '../config/env';
+import { hashToken, randomToken } from '../utils/crypto';
+import { sendDoctorApproval } from '../services/mailer';
+import { applicationDocumentPath, applicationDocumentTypes, privateApplicationDocumentTypes } from '../services/clinicianApplicationDocuments';
 
 export const adminRouter = Router();
 
@@ -98,7 +103,9 @@ adminRouter.get(
         lastLoginAt: doctor.user.lastLoginAt?.toISOString() || null,
         appointments: doctor._count.appointments,
         specializations: doctor.specializations.map((item) => item.specialization.name),
-        credentials: doctor.credentials.map((credential) => ({
+        hasResume: doctor.credentials.some((credential) => credential.type === applicationDocumentTypes.resume),
+        hasRegistrationCertificate: doctor.credentials.some((credential) => credential.type === applicationDocumentTypes.registrationCertificate),
+        credentials: doctor.credentials.filter((credential) => !privateApplicationDocumentTypes.some((type) => type === credential.type)).map((credential) => ({
           id: credential.id,
           type: credential.type,
           title: credential.title,
@@ -113,23 +120,44 @@ adminRouter.get(
   }),
 );
 
+adminRouter.get('/doctors/:id/:document(resume|registration-certificate)', asyncHandler(async (req, res) => {
+  const isResume = req.params.document === 'resume';
+  const document = await prisma.doctorCredential.findFirst({
+    where: {
+      doctorId: req.params.id,
+      type: isResume ? applicationDocumentTypes.resume : applicationDocumentTypes.registrationCertificate,
+      doctor: { user: { deletedAt: null } },
+    },
+    select: { id: true, note: true },
+  });
+  if (!document?.note || !/^[a-f0-9-]{36}$/.test(document.note)) throw new NotFoundError('No application document is available.');
+  const filePath = applicationDocumentPath(document.note);
+  await fs.access(filePath).catch(() => { throw new NotFoundError('The application document is no longer available.'); });
+  await audit({ req, action: isResume ? 'DOCTOR_RESUME_DOWNLOADED' : 'DOCTOR_REGISTRATION_CERTIFICATE_DOWNLOADED', entityType: 'DoctorCredential', entityId: document.id });
+  res.set({ 'Cache-Control': 'private, no-store', 'Content-Type': 'application/pdf', 'X-Content-Type-Options': 'nosniff' });
+  res.download(filePath, isResume ? 'clinician-resume.pdf' : 'registration-certificate.pdf');
+}));
+
 adminRouter.post(
   '/doctors/:id/verify',
   validate(adminDoctorVerifySchema),
   asyncHandler(async (req, res) => {
     const doctor = await prisma.doctorProfile.findUnique({
       where: { id: req.params.id },
-      include: { user: true },
+      include: { user: true, credentials: { where: { type: 'MEDICAL_REGISTRATION' }, select: { id: true } } },
     });
-    if (!doctor) throw new NotFoundError('Clinician profile not found.');
+    if (!doctor || doctor.user.deletedAt) throw new NotFoundError('Clinician profile not found.');
     if (req.body.status === 'VERIFIED' && !req.body.verified) {
       throw new ValidationError({
         verified: ['A profile cannot be marked VERIFIED without the verified flag.'],
       });
     }
+    const approving = req.body.status === 'VERIFIED' && req.body.verified;
+    const sendSetup = approving && doctor.credentials.length > 0 && !doctor.user.lastLoginAt;
+    const token = sendSetup ? randomToken(32) : null;
     const updated = await prisma.$transaction(async (tx) => {
       await tx.doctorCredential.updateMany({
-        where: { doctorId: doctor.id },
+        where: { doctorId: doctor.id, type: { notIn: privateApplicationDocumentTypes } },
         data: { verified: req.body.verified },
       });
       const result = await tx.doctorProfile.update({
@@ -142,19 +170,34 @@ adminRouter.post(
         },
         include: { user: true },
       });
-      await tx.notification.create({
+      if (!approving) {
+        const now = new Date();
+        await tx.session.updateMany({ where: { userId: doctor.userId, revokedAt: null }, data: { revokedAt: now } });
+        await tx.passwordResetToken.updateMany({ where: { userId: doctor.userId, usedAt: null }, data: { usedAt: now } });
+      }
+      if (token) {
+        await tx.passwordResetToken.create({ data: {
+          userId: doctor.userId,
+          tokenHash: hashToken(token),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        } });
+      }
+      if (doctor.status !== req.body.status || doctor.verified !== req.body.verified) await tx.notification.create({
         data: {
           userId: doctor.userId,
           type: 'CREDENTIAL_STATUS',
           title: 'Professional profile status updated',
           body:
             req.body.status === 'VERIFIED'
-              ? 'Your demonstration credential status is now marked verified. Clinical tools are available.'
+              ? 'Your clinician application is approved. Clinical tools are available.'
               : `Your professional profile status is now ${req.body.status}. Contact support for details.`,
         },
       });
       return result;
     });
+    const approvalEmailSent = token
+      ? (await sendDoctorApproval(updated.user.email, `${env.APP_URL}/reset-password?token=${token}&portal=doctor&setup=1`)).delivered
+      : null;
     await audit({
       req,
       action: 'DOCTOR_CREDENTIAL_STATUS_UPDATED',
@@ -173,8 +216,10 @@ adminRouter.post(
         status: updated.status,
         verified: updated.verified,
       },
-      message:
-        'Credential status updated. This demo does not perform real primary-source verification.',
+      approvalEmailSent,
+      message: approvalEmailSent === false
+        ? 'Status saved. The setup email could not be sent. Check SMTP and resend from this clinician’s review.'
+        : approvalEmailSent ? 'Clinician approved. Password setup email sent.' : 'Credential status updated.',
     });
   }),
 );

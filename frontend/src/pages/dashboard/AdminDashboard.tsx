@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { DashboardShell, type DashboardNavItem } from '@/components/layout/DashboardShell';
+import { DocumentDownload } from '@/components/consultation/ConsultationFiles';
 import { Seo } from '@/components/Seo';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -41,6 +42,8 @@ import type { AdminOverview } from '@/types';
 
 type AdminDoctor = {
   id: string;
+  hasResume: boolean;
+  hasRegistrationCertificate: boolean;
   slug: string;
   name: string;
   email: string;
@@ -54,9 +57,11 @@ type AdminDoctor = {
   feePaise: number;
   createdAt: string;
   appointments: number;
+  lastLoginAt: string | null;
   specializations: string[];
   credentials: {
     id: string;
+    type: string;
     title: string;
     institution: string | null;
     registrationNumber: string | null;
@@ -304,14 +309,14 @@ export default function AdminDashboard() {
     if (!doctorModal) return;
     setActionLoading(true);
     try {
-      await api(`/admin/doctors/${doctorModal.id}/verify`, {
+      const result = await api<{ message: string; approvalEmailSent: boolean | null }>(`/admin/doctors/${doctorModal.id}/verify`, {
         method: 'POST',
         body: { verified: status === 'VERIFIED', status, note: doctorNote || undefined },
       });
       push({
         title: `Credential status set to ${status}`,
-        description: 'This demo does not perform primary-source verification.',
-        tone: 'success',
+        description: result.message,
+        tone: result.approvalEmailSent === false ? 'info' : 'success',
       });
       setDoctorModal(null);
       setDoctorNote('');
@@ -975,6 +980,18 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 ))}
+                {doctorModal.hasRegistrationCertificate && (
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.06] p-3">
+                    <p className="text-xs font-semibold text-ivory">Registration certificate</p>
+                    <DocumentDownload endpoint={`/admin/doctors/${encodeURIComponent(doctorModal.id)}/registration-certificate`} fileName="registration-certificate.pdf" />
+                  </div>
+                )}
+                {doctorModal.hasResume && (
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/[0.06] p-3">
+                    <p className="text-xs font-semibold text-ivory">Application résumé</p>
+                    <DocumentDownload endpoint={`/admin/doctors/${encodeURIComponent(doctorModal.id)}/resume`} fileName="clinician-resume.pdf" />
+                  </div>
+                )}
               </div>
             </div>
             <div>
@@ -989,12 +1006,14 @@ export default function AdminDashboard() {
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <Button variant="secondary" onClick={() => setDoctorModal(null)}>Cancel</Button>
-              <Button variant="danger" loading={actionLoading} onClick={() => void verifyDoctor('SUSPENDED')}>
+              <Button variant="danger" loading={actionLoading} disabled={actionLoading} onClick={() => void verifyDoctor('SUSPENDED')}>
                 Suspend
               </Button>
-              <Button loading={actionLoading} onClick={() => void verifyDoctor('VERIFIED')} icon={<BadgeCheck className="h-4 w-4" />}>
-                Mark verified
-              </Button>
+              {(!doctorModal.verified || doctorModal.status !== 'VERIFIED' || (!doctorModal.lastLoginAt && doctorModal.credentials.some((credential) => credential.type === 'MEDICAL_REGISTRATION'))) && (
+                <Button loading={actionLoading} disabled={actionLoading} onClick={() => void verifyDoctor('VERIFIED')} icon={<BadgeCheck className="h-4 w-4" />}>
+                  {doctorModal.status === 'VERIFIED' && doctorModal.verified ? 'Resend setup email' : 'Approve clinician'}
+                </Button>
+              )}
             </div>
           </div>
         )}

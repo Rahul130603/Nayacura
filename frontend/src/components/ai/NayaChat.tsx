@@ -20,7 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { api, streamAi, type ChatLanguage } from '@/lib/api';
+import { api, streamAi, type AiSource, type ChatLanguage } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
@@ -33,6 +33,7 @@ type ChatMessageUI = {
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
+  sources?: AiSource[];
 };
 type ConversationSummary = { id: string; title: string; updatedAt: string };
 
@@ -215,6 +216,7 @@ export function NayaChat({
           );
         },
         controller.signal,
+        (sources) => setMessages((prev) => prev.map((item) => item.id === assistantId ? { ...item, sources } : item)),
       );
       if (id) {
         setConversationId(id);
@@ -524,6 +526,20 @@ export function NayaChat({
                   ) : (
                     <RichText text={message.content} />
                   )}
+                  {message.sources && message.sources.length > 0 && (
+                    <div className="mt-3 border-t border-white/10 pt-2 text-xs">
+                      <p className="font-semibold text-ivory">Related sources</p>
+                      <ul className="mt-1 space-y-1">
+                        {message.sources.map(({ title, url }, index) => (
+                          <li key={`${url}-${index}`}>
+                            <a href={url} target="_blank" rel="noopener noreferrer" className="break-words text-lavender underline hover:text-rose">
+                              {title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -608,11 +624,8 @@ export function NayaChat({
         </form>
         <p className="mt-2 px-1 text-center font-body text-[8.5px] leading-relaxed text-mauve/55">
           Naya is AI, not a clinician. It cannot diagnose, prescribe, or replace a consultation.
-          Emergency? Call local emergency services or Tele-MANAS on{' '}
-          <a href="tel:14416" className="text-lavender underline decoration-lavender/40">
-            14416
-          </a>
-          .
+          For personal medical questions, <Link to="/doctors" className="text-lavender underline">consult a Nayacura doctor</Link>.
+          In an emergency, call local emergency services.
         </p>
       </div>
 

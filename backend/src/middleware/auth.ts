@@ -39,13 +39,14 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
     if (!token) return next();
     const session = await prisma.session.findUnique({
       where: { tokenHash: hashToken(token) },
-      include: { user: true },
+      include: { user: { include: { doctor: { select: { status: true, verified: true } } } } },
     });
     if (
       !session ||
       session.revokedAt ||
       session.expiresAt <= new Date() ||
-      session.user.deletedAt
+      session.user.deletedAt ||
+      (session.user.role === 'DOCTOR' && (!session.user.doctor?.verified || session.user.doctor.status !== 'VERIFIED'))
     ) {
       return next();
     }

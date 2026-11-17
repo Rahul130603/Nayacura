@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import type { z } from 'zod';
 import { prisma } from '../config/prisma';
 import { env } from '../config/env';
 import { asyncHandler, validate } from '../utils/http';
 import {
   accountDeletionSchema,
+  changePasswordSchema,
+  doctorApplicationSchema,
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
@@ -28,9 +31,10 @@ import {
 } from '../utils/errors';
 import { hashToken, randomToken } from '../utils/crypto';
 import { audit } from '../utils/audit';
-import { sendPasswordReset, sendVerificationEmail } from '../services/mailer';
+import { sendDoctorApplicationReceived, sendPasswordReset, sendVerificationEmail } from '../services/mailer';
 import { supportReference } from '../utils/crypto';
 import { clearAuthCookies } from '../middleware/csrf';
+import { discardApplicationDocument, storeApplicationDocument } from '../services/clinicianApplicationDocuments';
 
 export const authRouter = Router();
 
@@ -42,6 +46,58 @@ authRouter.use((_req, res, next) => {
 authRouter.get('/csrf', (req, res) => {
   res.json({ csrfToken: req.cookies?.nayacura_csrf || null });
 });
+
+authRouter.post('/doctor-applications', formLimiter, validate(doctorApplicationSchema), asyncHandler(async (req, res) => {
+  const input = req.body as z.infer<typeof doctorApplicationSchema>;
+  const specialty = await prisma.specialization.findUnique({ where: { slug: input.specialization } });
+  if (!specialty) throw new AppError('Choose an available specialty.', 422, 'INVALID_SPECIALTY');
+
+  const passwordHash = await bcrypt.hash(randomToken(32), 12);
+  const documents: Awaited<ReturnType<typeof storeApplicationDocument>>[] = [];
+  let user;
+  try {
+    documents.push(await storeApplicationDocument('registrationCertificate', input.registrationCertificate));
+    if (input.resume) documents.push(await storeApplicationDocument('resume', input.resume));
+
+    user = await prisma.user.create({
+      data: {
+        email: input.email,
+        name: input.name,
+        role: 'DOCTOR',
+        passwordHash,
+        doctor: { create: {
+          slug: `clinician-${randomToken(12)}`,
+          title: specialty.name,
+          gender: 'UNSPECIFIED',
+          bio: '',
+          approach: '',
+          city: input.city,
+          experienceYears: input.experienceYears,
+          languages: JSON.stringify(input.languages),
+          feePaise: 0,
+          onlineEnabled: false,
+          inPersonEnabled: false,
+          status: 'PENDING',
+          verified: false,
+          isDemo: env.isDemo,
+          specializations: { create: { specializationId: specialty.id, isPrimary: true } },
+          credentials: { create: [
+            { type: 'QUALIFICATION', title: input.qualification, institution: input.institution, year: input.graduationYear },
+            { type: 'MEDICAL_REGISTRATION', title: 'Professional registration', council: input.council, registrationNumber: input.registrationNumber },
+            ...documents,
+          ] },
+        } },
+        consents: { create: { type: 'PRIVACY', granted: true, version: 'draft-2026-11' } },
+      },
+    });
+  } catch (error) {
+    await Promise.all(documents.map((document) => discardApplicationDocument(document.note)));
+    throw error;
+  }
+  await audit({ req, actorId: user.id, actorRole: 'DOCTOR', action: 'DOCTOR_APPLICATION_SUBMITTED', entityType: 'User', entityId: user.id });
+  const receipt = await sendDoctorApplicationReceived(user.email);
+  res.status(201).json({ status: 'PENDING', acknowledgementSent: receipt.delivered });
+}));
 
 authRouter.post(
   '/register',
@@ -148,6 +204,13 @@ authRouter.post(
       );
     }
 
+    if (user.role === 'DOCTOR') {
+      const doctor = await prisma.doctorProfile.findUnique({ where: { userId: user.id } });
+      if (!doctor?.verified || doctor.status !== 'VERIFIED') {
+        throw new ForbiddenError('Clinician access requires admin approval.');
+      }
+    }
+
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
     await createSession(req, res, user.id);
     await audit({
@@ -195,8 +258,8 @@ authRouter.post(
   validate(forgotPasswordSchema),
   asyncHandler(async (req, res) => {
     const { email } = req.body as { email: string };
-    const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
-    if (user && !user.deletedAt) {
+    const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) }, include: { doctor: true } });
+    if (user && !user.deletedAt && (user.role !== 'DOCTOR' || (user.doctor?.verified && user.doctor.status === 'VERIFIED'))) {
       const rawToken = randomToken(32);
       await prisma.passwordResetToken.create({
         data: {
@@ -205,9 +268,9 @@ authRouter.post(
           expiresAt: new Date(Date.now() + 30 * 60 * 1000),
         },
       });
-      const resetUrl = `${env.APP_URL}/reset-password?token=${rawToken}`;
+      const resetUrl = `${env.APP_URL}/reset-password?token=${rawToken}${user.role === 'DOCTOR' ? '&portal=doctor' : ''}`;
       await sendPasswordReset(user.email, resetUrl);
-      if (!env.smtpConfigured) {
+      if (!env.smtpConfigured && user.role !== 'DOCTOR') {
         console.info(`[nayacura demo] Password reset link for local testing: ${resetUrl}`);
       }
       await audit({
@@ -234,9 +297,10 @@ authRouter.post(
     const { token, password } = req.body as { token: string; password: string };
     const record = await prisma.passwordResetToken.findUnique({
       where: { tokenHash: hashToken(token) },
-      include: { user: true },
+      include: { user: { include: { doctor: true } } },
     });
-    if (!record || record.usedAt || record.expiresAt <= new Date() || record.user.deletedAt) {
+    if (!record || record.usedAt || record.expiresAt <= new Date() || record.user.deletedAt ||
+      (record.user.role === 'DOCTOR' && (!record.user.doctor?.verified || record.user.doctor.status !== 'VERIFIED'))) {
       throw new AppError(
         'This reset link is invalid or has expired. Please request a new one.',
         400,
@@ -244,17 +308,24 @@ authRouter.post(
       );
     }
     const passwordHash = await bcrypt.hash(password, 12);
-    await prisma.$transaction([
-      prisma.user.update({ where: { id: record.userId }, data: { passwordHash } }),
-      prisma.passwordResetToken.update({
-        where: { id: record.id },
-        data: { usedAt: new Date() },
-      }),
-      prisma.session.updateMany({
+    await prisma.$transaction(async (tx) => {
+      const usedAt = new Date();
+      const updated = await tx.user.updateMany({
+        where: { id: record.userId, passwordHash: record.user.passwordHash, deletedAt: null },
+        data: { passwordHash },
+      });
+      if (!updated.count) throw new AppError('This password link is invalid or has expired.', 400, 'INVALID_RESET_TOKEN');
+      const claimed = await tx.passwordResetToken.updateMany({
+        where: { id: record.id, usedAt: null, expiresAt: { gt: usedAt } },
+        data: { usedAt },
+      });
+      if (!claimed.count) throw new AppError('This password link is invalid or has expired.', 400, 'INVALID_RESET_TOKEN');
+      await tx.passwordResetToken.updateMany({ where: { userId: record.userId, usedAt: null }, data: { usedAt } });
+      await tx.session.updateMany({
         where: { userId: record.userId, revokedAt: null },
-        data: { revokedAt: new Date() },
-      }),
-    ]);
+        data: { revokedAt: usedAt },
+      });
+    });
     await audit({
       req,
       actorId: record.userId,
@@ -266,6 +337,24 @@ authRouter.post(
     res.json({ message: 'Your password has been updated. Please sign in again.' });
   }),
 );
+
+authRouter.post('/change-password', requireAuth, authLimiter, validate(changePasswordSchema), asyncHandler(async (req, res) => {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.id } });
+  if (!(await bcrypt.compare(req.body.currentPassword, user.passwordHash))) {
+    throw new AppError('Current password is incorrect.', 400, 'INCORRECT_PASSWORD');
+  }
+  const passwordHash = await bcrypt.hash(req.body.password, 12);
+  await prisma.$transaction(async (tx) => {
+    const updated = await tx.user.updateMany({ where: { id: user.id, passwordHash: user.passwordHash }, data: { passwordHash } });
+    if (!updated.count) throw new AppError('Your password changed. Sign in again.', 409, 'PASSWORD_CHANGED');
+    const now = new Date();
+    await tx.passwordResetToken.updateMany({ where: { userId: user.id, usedAt: null }, data: { usedAt: now } });
+    await tx.session.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: now } });
+  });
+  clearAuthCookies(res);
+  await audit({ req, action: 'AUTH_PASSWORD_CHANGED', entityType: 'User', entityId: user.id });
+  res.json({ message: 'Password updated. Sign in with your new password.' });
+}));
 
 authRouter.post(
   '/verify-email',

@@ -28,6 +28,7 @@ const AdminDashboard = lazy(() => import('@/pages/dashboard/AdminDashboard'));
 const Login = lazy(() => import('@/pages/auth/Login'));
 const Register = lazy(() => import('@/pages/auth/Register'));
 const DoctorLogin = lazy(() => import('@/pages/auth/DoctorLogin'));
+const DoctorRegister = lazy(() => import('@/pages/auth/DoctorRegister'));
 const AdminLogin = lazy(() => import('@/pages/auth/AdminLogin'));
 const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'));
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="doctor/login" element={<DoctorLogin />} />
+          <Route path="doctor/register" element={<DoctorRegister />} />
           <Route path="admin/login" element={<AdminLogin />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="reset-password" element={<ResetPassword />} />

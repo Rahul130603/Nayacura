@@ -159,7 +159,7 @@ export function LoginPortal({ role }: { role: Role }) {
               Password
             </label>
             <Link
-              to="/forgot-password"
+              to={role === 'DOCTOR' ? '/forgot-password?portal=doctor' : '/forgot-password'}
               className="font-body text-[9.5px] text-lavender transition-colors hover:text-rose"
             >
               Forgot password?
@@ -214,6 +214,12 @@ export function LoginPortal({ role }: { role: Role }) {
           <Link to="/register" className="font-sans font-semibold text-lavender hover:text-rose">
             Create a private account <ArrowRight className="inline h-3 w-3" />
           </Link>
+        </p>
+      )}
+      {role === 'DOCTOR' && (
+        <p className="mt-3 text-center font-body text-[11px] text-mauve">
+          New clinician?{' '}
+          <Link to="/doctor/register" className="font-semibold text-lavender hover:text-rose">Apply to join Nayacura</Link>
         </p>
       )}
 

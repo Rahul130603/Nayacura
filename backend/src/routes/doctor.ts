@@ -18,6 +18,7 @@ import {
   serializePrescription,
 } from '../services/serializers';
 import { audit } from '../utils/audit';
+import { privateApplicationDocumentTypes } from '../services/clinicianApplicationDocuments';
 import { DateTime } from 'luxon';
 
 export const doctorRouter = Router();
@@ -325,7 +326,7 @@ doctorRouter.get(
       include: {
         user: { select: { name: true, email: true } },
         specializations: { include: { specialization: true } },
-        credentials: true,
+        credentials: { where: { type: { notIn: privateApplicationDocumentTypes } } },
         clinics: { include: { clinic: true } },
       },
     });

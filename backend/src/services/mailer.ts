@@ -98,6 +98,18 @@ export async function sendVerificationEmail(to: string, verifyUrl: string) {
   );
 }
 
+export async function sendDoctorApplicationReceived(to: string) {
+  return send(to, 'Nayacura received your clinician application',
+    'Thank you for applying to join Nayacura. Your application is pending review. We will email you login setup instructions if your application is approved.',
+    'doctor_application_received');
+}
+
+export async function sendDoctorApproval(to: string, setupUrl: string) {
+  return send(to, 'Your Nayacura clinician application was approved',
+    `Your clinician application has been approved.\n\nLogin email: ${to}\n\nSet your password using this single-use link within 24 hours:\n${setupUrl}\n\nAfter setting your password, sign in to the Clinician Portal with your login email.`,
+    'doctor_application_approved');
+}
+
 export async function sendWelcomeEmail(to: string) {
   return send(
     to,

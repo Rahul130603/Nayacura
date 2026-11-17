@@ -1,8 +1,6 @@
 import { Router } from 'express';
-import express from 'express';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
 import { prisma } from '../config/prisma';
 import { env } from '../config/env';
 import { asyncHandler, validate } from '../utils/http';
@@ -17,7 +15,13 @@ import {
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { audit } from '../utils/audit';
 import { hashIp } from '../utils/crypto';
-import { logger } from '../utils/logger';
+import {
+  clinicianPrescriptionCategory,
+  downloadMedicalDocument,
+  medicalDocumentBody,
+  serializeMedicalDocument,
+  storeMedicalDocument,
+} from '../services/medicalDocuments';
 
 export const patientRouter = Router();
 
@@ -51,8 +55,11 @@ patientRouter.get(
         prisma.appointment.findMany({
           where: {
             patientId: patient.id,
-            startAt: { gte: now },
-            status: { in: ['CONFIRMED', 'PENDING_PAYMENT'] },
+            OR: [
+              { startAt: { gte: now }, status: { in: ['CONFIRMED', 'PENDING_PAYMENT'] } },
+              { endAt: { gte: new Date(now.getTime() - 30 * 60 * 1000) }, status: 'IN_PROGRESS' },
+              { endAt: { gte: new Date(now.getTime() - 30 * 60 * 1000) }, status: 'CONFIRMED', mode: 'ONLINE' },
+            ],
           },
           include: appointmentInclude,
           orderBy: { startAt: 'asc' },
@@ -172,16 +179,14 @@ patientRouter.get(
     const patient = await patientFor(req.user!.id);
     const documents = await prisma.medicalDocument.findMany({
       where: { patientId: patient.id },
+      include: { appointment: { select: { bookingId: true, doctor: { select: { user: { select: { name: true } } } } } } },
       orderBy: { createdAt: 'desc' },
     });
     res.json({
       documents: documents.map((document) => ({
-        id: document.id,
-        fileName: document.fileName,
-        mimeType: document.mimeType,
-        sizeBytes: document.sizeBytes,
-        category: document.category,
-        createdAt: document.createdAt.toISOString(),
+        ...serializeMedicalDocument(document),
+        bookingId: document.appointment?.bookingId,
+        doctorName: document.category === clinicianPrescriptionCategory ? document.appointment?.doctor.user.name : undefined,
         uploader: document.uploadedById ? 'You or your care team' : 'Care team',
       })),
     });
@@ -190,91 +195,22 @@ patientRouter.get(
 
 patientRouter.post(
   '/documents',
-  express.raw({
-    type: ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream'],
-    limit: '5mb',
-  }),
+  medicalDocumentBody,
   asyncHandler(async (req, res) => {
     const patient = await patientFor(req.user!.id);
-    const rawName = req.get('x-file-name');
-    if (!rawName) throw new ValidationError({ file: ['A file name is required.'] });
-    let fileName: string;
-    try {
-      fileName = decodeURIComponent(rawName);
-    } catch {
-      throw new ValidationError({ file: ['The file name is invalid.'] });
-    }
-    fileName = fileName.replace(/[\r\n"/\\]/g, '_').slice(0, 200);
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
-    const mimeType = (req.get('content-type') || '').split(';')[0];
-    if (!allowed.includes(mimeType)) {
-      throw new ValidationError({ file: ['Only PDF, JPEG or PNG files are accepted.'] });
-    }
-    const categoryHeader = (req.get('x-file-category') || 'OTHER').toUpperCase();
-    const category = ['REPORT', 'PRESCRIPTION', 'REFERRAL', 'OTHER'].includes(categoryHeader)
-      ? categoryHeader
-      : 'OTHER';
-    const buffer = Buffer.isBuffer(req.body) ? req.body : null;
-    if (!buffer || buffer.length === 0) throw new ValidationError({ file: ['The file is empty.'] });
-    if (buffer.length > 5 * 1024 * 1024) {
-      throw new ValidationError({ file: ['The file must be smaller than 5 MB.'] });
-    }
-    const magicValid =
-      (mimeType === 'application/pdf' && buffer.subarray(0, 5).toString() === '%PDF-') ||
-      (mimeType === 'image/jpeg' && buffer[0] === 0xff && buffer[1] === 0xd8) ||
-      (mimeType === 'image/png' &&
-        buffer[0] === 0x89 &&
-        buffer[1] === 0x50 &&
-        buffer[2] === 0x4e &&
-        buffer[3] === 0x47);
-    if (!magicValid) {
-      throw new ValidationError({ file: ['The file does not match its declared type.'] });
-    }
-
-    const extension = mimeType === 'application/pdf' ? 'pdf' : mimeType === 'image/png' ? 'png' : 'jpg';
-    const storageKey = `${randomUUID()}.${extension}`;
-    const uploadDir = path.resolve(env.UPLOAD_DIR);
-    await fs.mkdir(uploadDir, { recursive: true });
-    await fs.writeFile(path.join(uploadDir, storageKey), buffer, { mode: 0o600 });
-
     let appointmentId: string | null = null;
     const requestedAppointment = req.get('x-appointment-id');
     if (requestedAppointment) {
       const appointment = await prisma.appointment.findFirst({
         where: { id: requestedAppointment, patientId: patient.id },
       });
-      if (appointment) appointmentId = appointment.id;
+      if (!appointment) throw new NotFoundError('That appointment could not be found.');
+      appointmentId = appointment.id;
     }
 
-    const document = await prisma.medicalDocument.create({
-      data: {
-        patientId: patient.id,
-        uploadedById: req.user!.id,
-        appointmentId,
-        fileName,
-        storageKey,
-        mimeType,
-        sizeBytes: buffer.length,
-        category,
-        visibility: 'CARE_TEAM',
-      },
-    });
-    await audit({
-      req,
-      action: 'DOCUMENT_UPLOADED',
-      entityType: 'MedicalDocument',
-      entityId: document.id,
-      metadata: { category, sizeBytes: buffer.length, mimeType },
-    });
+    const document = await storeMedicalDocument(req, { patientId: patient.id, appointmentId });
     res.status(201).json({
-      document: {
-        id: document.id,
-        fileName: document.fileName,
-        mimeType: document.mimeType,
-        sizeBytes: document.sizeBytes,
-        category: document.category,
-        createdAt: document.createdAt.toISOString(),
-      },
+      document: serializeMedicalDocument(document),
       message: 'Document stored with access limited to your care team.',
     });
   }),
@@ -289,22 +225,7 @@ patientRouter.get(
       include: { appointment: true },
     });
     if (!document) throw new NotFoundError('Document not found.');
-    const filePath = path.join(path.resolve(env.UPLOAD_DIR), document.storageKey);
-    try {
-      await fs.access(filePath);
-    } catch {
-      logger.warn('Document file missing from storage', { documentId: document.id });
-      throw new NotFoundError('The stored file is no longer available.');
-    }
-    await audit({
-      req,
-      action: 'DOCUMENT_DOWNLOADED',
-      entityType: 'MedicalDocument',
-      entityId: document.id,
-    });
-    res.setHeader('Content-Type', document.mimeType);
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.download(filePath, document.fileName);
+    await downloadMedicalDocument(req, res, document);
   }),
 );
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { applicationDocumentMaxBytes } from '../services/clinicianApplicationDocuments';
 
 const name = z.string().trim().min(2, 'Please enter your full name.').max(80);
 const email = z.string().trim().toLowerCase().email('Please enter a valid email address.');
@@ -26,6 +27,28 @@ export const loginSchema = z.object({
   email,
   password: z.string().min(1, 'Please enter your password.').max(128),
   role: z.enum(['PATIENT', 'DOCTOR', 'ADMIN']).optional(),
+});
+
+export const doctorApplicationSchema = z.object({
+  name,
+  email: email.max(254),
+  specialization: z.string().trim().min(1).max(100),
+  qualification: z.string().trim().min(2).max(150),
+  institution: z.string().trim().min(2).max(150),
+  graduationYear: z.number().int().min(1950).max(new Date().getFullYear()),
+  council: z.string().trim().min(2).max(150),
+  registrationNumber: z.string().trim().min(2).max(100),
+  experienceYears: z.number().int().min(0).max(75),
+  city: z.string().trim().min(2).max(100),
+  languages: z.array(z.string().trim().min(1).max(40)).min(1).max(10),
+  consent: z.literal(true),
+  registrationCertificate: z.string({ required_error: 'Upload your registration certificate as a PDF.' }).min(1).max(Math.ceil(applicationDocumentMaxBytes / 3) * 4),
+  resume: z.string().min(1).max(Math.ceil(applicationDocumentMaxBytes / 3) * 4).optional(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: loginSchema.shape.password,
+  password,
 });
 
 export const forgotPasswordSchema = z.object({ email });

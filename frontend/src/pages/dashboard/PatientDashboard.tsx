@@ -23,7 +23,6 @@ import {
   RefreshCw,
   Send,
   ShieldCheck,
-  Sparkles,
   Star,
   Trash2,
   Upload,
@@ -34,6 +33,8 @@ import {
 import { api, ApiError, uploadMedicalDocument } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { DashboardShell, type DashboardNavItem } from '@/components/layout/DashboardShell';
+import { PatientNotifications } from '@/components/layout/PatientNotifications';
+import { clinicianPrescriptionCategory, DocumentDownload } from '@/components/consultation/ConsultationFiles';
 import { Seo } from '@/components/Seo';
 import { Badge } from '@/components/ui/Badge';
 import { Button, ButtonLink } from '@/components/ui/Button';
@@ -55,14 +56,6 @@ type OverviewResponse = {
     aiHistoryEnabled: boolean;
   };
   upcoming: Appointment[];
-  notifications: {
-    id: string;
-    title: string;
-    body: string;
-    type: string;
-    readAt: string | null;
-    createdAt: string;
-  }[];
   unreadCount: number;
   stats: { upcoming: number };
   recentDocuments: DocumentItem[];
@@ -77,6 +70,8 @@ type DocumentItem = {
   category: string;
   createdAt: string;
   uploader?: string;
+  doctorName?: string;
+  bookingId?: string;
 };
 
 type PrescriptionItem = {
@@ -282,6 +277,11 @@ function AppointmentRow({
                 </span>
               )
             )}
+            {appointment.mode === 'ONLINE' && !canJoin && ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(appointment.status) && (
+              <ButtonLink to={`/consult/${appointment.id}`} size="sm" variant="secondary">
+                Consultation files
+              </ButtonLink>
+            )}
             {['CONFIRMED', 'PENDING_PAYMENT'].includes(appointment.status) && upcoming && (
               <>
                 <button
@@ -438,6 +438,7 @@ export default function PatientDashboard() {
   const overviewQuery = useQuery({
     queryKey: ['patient-overview'],
     queryFn: () => api<OverviewResponse>('/patient/overview'),
+    refetchInterval: section === 'overview' ? 30_000 : false,
   });
   const appointmentsQuery = useQuery({
     queryKey: ['patient-appointments'],
@@ -497,8 +498,14 @@ export default function PatientDashboard() {
 
   const overview = overviewQuery.data;
   const appointments = appointmentsQuery.data?.appointments || [];
-  const documents = documentsQuery.data?.documents || [];
+  const documents = documentsQuery.data?.documents.filter((file) => file.category !== clinicianPrescriptionCategory) ?? [];
+  const prescriptionFiles = documentsQuery.data?.documents.filter((file) => file.category === clinicianPrescriptionCategory) ?? [];
   const prescriptions = prescriptionsQuery.data?.prescriptions || [];
+  const upcomingAppointments = overview?.upcoming ?? [];
+  const nextAppointment = upcomingAppointments.find((appointment) => appointment.canJoin) ?? upcomingAppointments[0];
+  const needsPayment = nextAppointment?.status === 'PENDING_PAYMENT';
+  const consultationPath = nextAppointment ? `/consult/${nextAppointment.id}` : undefined;
+  const recentDocuments = (overview?.recentDocuments ?? []).filter((file) => file.category !== clinicianPrescriptionCategory);
   const payments = paymentsQuery.data?.payments || [];
   const profile = profileQuery.data?.profile;
   const tickets = ticketsQuery.data?.tickets || [];
@@ -807,13 +814,16 @@ export default function PatientDashboard() {
     support: 'Support requests',
   };
 
-  if (overviewQuery.isError) {
+  const notifications = <PatientNotifications unreadCount={overview?.unreadCount ?? 0} section={section} />;
+
+  if (overviewQuery.isError && !overview) {
     return (
       <DashboardShell
         portal="Patient portal"
         title="Patient dashboard"
         subtitle="Private care, managed securely"
         navItems={navItems}
+        headerAction={notifications}
         accent="rose"
       >
         <ErrorState
@@ -838,6 +848,7 @@ export default function PatientDashboard() {
         title={sectionTitles[section] || 'Your private space'}
         subtitle={`Good to see you, ${user?.name?.split(' ')[0] || 'there'}. Everything here is private to your account.`}
         navItems={navItems}
+        headerAction={notifications}
         accent="rose"
       >
         {overviewQuery.isLoading ? (
@@ -847,207 +858,140 @@ export default function PatientDashboard() {
           </div>
         ) : section === 'overview' ? (
           <div className="space-y-4">
-            <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-              <div className="space-y-4">
-                <div className="relative overflow-hidden rounded-[24px] border border-lavender/15 bg-gradient-to-br from-burgundy/30 via-plum to-royal/15 p-5 sm:p-7">
-                  <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border border-white/10" />
-                  <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.18em] text-rose">
-                        {overview?.upcoming.length ? 'Next appointment' : 'Begin whenever you are ready'}
-                      </p>
-                      <h2 className="mt-2 font-display text-[clamp(1.7rem,3vw,2.5rem)] leading-tight text-ivory">
-                        {overview?.upcoming.length
-                          ? overview.upcoming[0].doctor.name
-                          : 'You do not have to begin with all the words.'}
-                      </h2>
-                      {overview?.upcoming.length ? (
-                        <p className="mt-2 font-body text-[11px] text-mauve">
-                          {formatDateTime(overview.upcoming[0].startAt, overview.upcoming[0].timezone)} ·{' '}
-                          {overview.upcoming[0].mode === 'ONLINE' ? 'Secure video' : 'In person'}
-                        </p>
-                      ) : (
-                        <p className="mt-2 max-w-md font-body text-[11px] leading-relaxed text-mauve">
-                          Browse a specialist, ask Naya a general question or read the journal first.
-                          There is no pressure to book today.
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      {overview?.upcoming.length ? (
-                        <ButtonLink
-                          to={
-                            overview.upcoming[0].status === 'PENDING_PAYMENT'
-                              ? `/payment/${overview.upcoming[0].id}`
-                              : overview.upcoming[0].canJoin
-                                ? `/consult/${overview.upcoming[0].id}`
-                                : '/dashboard?section=appointments'
-                          }
-                          size="sm"
-                          variant={overview.upcoming[0].canJoin || overview.upcoming[0].status === 'PENDING_PAYMENT' ? 'primary' : 'secondary'}
-                          icon={
-                            overview.upcoming[0].status === 'PENDING_PAYMENT' ? (
-                              <CreditCard className="h-3.5 w-3.5" />
-                            ) : overview.upcoming[0].canJoin ? (
-                              <Video className="h-3.5 w-3.5" />
-                            ) : (
-                              <CalendarDays className="h-3.5 w-3.5" />
-                            )
-                          }
-                        >
-                          {overview.upcoming[0].status === 'PENDING_PAYMENT'
-                            ? 'Complete payment'
-                            : overview.upcoming[0].canJoin
-                              ? 'Join secure room'
-                              : 'View appointment'}
-                        </ButtonLink>
-                      ) : (
-                        <ButtonLink to="/doctors" size="sm" arrow>
-                          Find a specialist
-                        </ButtonLink>
-                      )}
-                    </div>
+            <div className={cn('grid gap-4', (prescriptionFiles.length > 0 || recentDocuments.length > 0) && 'xl:grid-cols-[1.35fr_0.65fr]')}>
+              <section className="relative self-start overflow-hidden rounded-[24px] border border-lavender/15 bg-gradient-to-br from-burgundy/30 via-plum to-royal/15 p-5 sm:p-7">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border border-white/10" />
+                <div className="relative">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-sans text-xs font-semibold text-rose">Upcoming care</p>
+                    {nextAppointment && (
+                      <Link to="/dashboard?section=appointments" className="text-xs font-semibold text-lavender hover:text-rose">
+                        View all appointments
+                      </Link>
+                    )}
                   </div>
-                  {overview?.upcoming[0] && (
-                    <div className="relative z-10 mt-5 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
-                      <DoctorAvatar doctor={overview.upcoming[0].doctor} size="sm" />
-                      <span className="font-body text-[9.5px] text-ivory/60">
-                        {overview.upcoming[0].doctor.title}
-                      </span>
-                      <span className="ml-auto font-mono text-[8px] text-mauve/50">
-                        {overview.upcoming[0].bookingId}
-                      </span>
-                    </div>
+                  <h2 className="mt-3 font-display text-[clamp(1.7rem,3vw,2.5rem)] leading-tight text-ivory">
+                    {!nextAppointment
+                      ? 'Find a specialist when you’re ready'
+                      : needsPayment ? 'Complete your booking' : 'Prepare for your consultation'}
+                  </h2>
+                  {nextAppointment ? (
+                    <>
+                      <div className="mt-4 flex items-center gap-3">
+                        <DoctorAvatar doctor={nextAppointment.doctor} size="sm" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-ivory">{nextAppointment.doctor.name}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-mauve">
+                            {formatDateTime(nextAppointment.startAt, nextAppointment.timezone)} ·{' '}
+                            {nextAppointment.mode === 'ONLINE' ? 'Secure video' : 'In person'}
+                          </p>
+                        </div>
+                      </div>
+                      {needsPayment && (
+                        <ButtonLink to={`/payment/${nextAppointment.id}`} size="sm" className="mt-5" icon={<CreditCard className="h-3.5 w-3.5" />}>
+                          Complete payment
+                        </ButtonLink>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-2 text-sm leading-relaxed text-mauve">
+                        You have no upcoming appointments. Browse specialists when you’re ready to book.
+                      </p>
+                      <div className="mt-5 flex flex-wrap items-center gap-3">
+                        <ButtonLink to="/doctors" size="sm" arrow>Find a specialist</ButtonLink>
+                      </div>
+                    </>
                   )}
                 </div>
+              </section>
 
-                <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-sans text-[11px] font-semibold text-ivory">Upcoming care</p>
-                      <p className="mt-0.5 font-body text-[9px] text-mauve">Your next scheduled conversations</p>
-                    </div>
-                    <Link
-                      to="/dashboard?section=appointments"
-                      className="font-sans text-[9px] font-semibold text-lavender hover:text-rose"
-                    >
-                      View all
-                    </Link>
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    {overview?.upcoming.length ? (
-                      overview.upcoming.map((appointment) => (
-                        <AppointmentRow
-                          key={appointment.id}
-                          appointment={appointment}
-                          onCancel={setCancelTarget}
-                          onReschedule={(item) => void openReschedule(item)}
-                          onReview={setReviewTarget}
-                          onNotes={(item) => void openNotes(item)}
-                        />
-                      ))
-                    ) : (
-                      <EmptyState
-                        className="py-8"
-                        icon={<CalendarDays className="h-5 w-5" />}
-                        title="No upcoming appointments"
-                        description="When you book a consultation, it will appear here with joining instructions."
-                        action={
-                          <ButtonLink to="/doctors" size="sm" arrow>
-                            Browse specialists
-                          </ButtonLink>
-                        }
-                      />
-                    )}
-                  </div>
+              {(prescriptionFiles.length > 0 || recentDocuments.length > 0) && (
+                <div className="space-y-4">
+                  {prescriptionFiles.length > 0 && (
+                    <section className="rounded-[22px] border border-lavender/15 bg-lavender/[0.04] p-5">
+                      <h2 className="text-sm font-semibold text-ivory">Your prescription is available</h2>
+                      <p className="mt-1 break-words text-xs text-mauve">{prescriptionFiles[0].fileName}</p>
+                      <ButtonLink to="/dashboard?section=records" size="sm" variant="secondary" className="mt-4">
+                        View prescription
+                      </ButtonLink>
+                    </section>
+                  )}
+                  {recentDocuments.length > 0 && (
+                    <section className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5">
+                      <h2 className="text-sm font-semibold text-ivory">Recent documents</h2>
+                      <div className="mt-3 space-y-2">
+                        {recentDocuments.map((document) => (
+                          <a
+                            key={document.id}
+                            href={`/api/patient/documents/${document.id}/download`}
+                            className="flex items-center gap-2 rounded-lg py-1.5 font-body text-[9.5px] text-mauve hover:text-ivory"
+                          >
+                            <Paperclip className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{document.fileName}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="font-sans text-[11px] font-semibold text-ivory">Notifications</p>
-                    {overview?.unreadCount ? (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await api('/patient/notifications/read-all', { method: 'POST' });
-                          await overviewQuery.refetch();
-                        }}
-                        className="font-sans text-[8px] font-semibold uppercase tracking-wider text-lavender hover:text-rose"
-                      >
-                        Mark all read
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="mt-4 space-y-3">
-                    {overview?.notifications.length ? (
-                      overview.notifications.map((notification) => (
-                        <button
-                          key={notification.id}
-                          type="button"
-                          onClick={async () => {
-                            if (notification.readAt) return;
-                            await api(`/patient/notifications/${notification.id}/read`, { method: 'PATCH' });
-                            await overviewQuery.refetch();
-                          }}
-                          className="flex w-full items-start gap-2.5 text-left"
-                        >
-                          <span
-                            className={cn(
-                              'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full',
-                              notification.readAt ? 'bg-white/15' : 'bg-rose',
-                            )}
-                          />
-                          <div>
-                            <p className="font-sans text-[10px] font-medium leading-snug text-ivory/80">
-                              {notification.title}
-                            </p>
-                            <p className="mt-0.5 line-clamp-2 font-body text-[9px] leading-relaxed text-mauve">
-                              {notification.body}
-                            </p>
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="font-body text-[10px] text-mauve">No notifications yet.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-[22px] border border-lavender/15 bg-lavender/[0.04] p-5">
-                  <Sparkles className="h-4 w-4 text-rose" />
-                  <p className="mt-3 font-display text-xl leading-tight text-ivory">
-                    A private question before a booking?
-                  </p>
-                  <p className="mt-1.5 font-body text-[9.5px] leading-relaxed text-mauve">
-                    Naya can explain general topics in English or Tamil. It cannot diagnose or
-                    prescribe.
-                  </p>
-                  <ButtonLink to="/ai" variant="secondary" size="sm" className="mt-4 w-full">
-                    Ask Naya
-                  </ButtonLink>
-                </div>
-
-                {overview?.recentDocuments.length ? (
-                  <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5">
-                    <p className="font-sans text-[11px] font-semibold text-ivory">Recent documents</p>
-                    <div className="mt-3 space-y-2">
-                      {overview.recentDocuments.map((document) => (
-                        <a
-                          key={document.id}
-                          href={`/api/patient/documents/${document.id}/download`}
-                          className="flex items-center gap-2 rounded-lg py-1.5 font-body text-[9.5px] text-mauve hover:text-ivory"
-                        >
-                          <Paperclip className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{document.fileName}</span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+              )}
             </div>
+            {!needsPayment && (
+              <section aria-labelledby="consultation-preparation" className="rounded-[22px] border border-white/[0.08] bg-white/[0.02] p-5 sm:p-7">
+                <h2 id="consultation-preparation" className="font-display text-xl text-ivory">
+                  {nextAppointment ? 'Consultation checklist' : 'Before your first consultation'}
+                </h2>
+                <ul className="mt-4 grid gap-4 md:grid-cols-3">
+                  <li className="rounded-xl border border-white/[0.08] p-4">
+                    <CalendarDays className="h-4 w-4 text-lavender" aria-hidden="true" />
+                    <h3 className="mt-3 text-sm font-semibold text-ivory">
+                      {nextAppointment ? 'Review your booking' : 'Choose your consultation'}
+                    </h3>
+                    <p className="mt-1 text-xs leading-relaxed text-mauve">
+                      {nextAppointment ? 'Open Appointments to review your booking or make changes.' : 'See what to expect from a video or in-person visit.'}
+                    </p>
+                    <Link to={nextAppointment ? '/dashboard?section=appointments' : '/how-it-works'} className="mt-3 inline-block text-xs font-semibold text-lavender hover:text-rose">
+                      {nextAppointment ? 'View appointment' : 'How consultations work'}
+                    </Link>
+                  </li>
+                  <li className="rounded-xl border border-white/[0.08] p-4">
+                    <FileText className="h-4 w-4 text-lavender" aria-hidden="true" />
+                    <h3 className="mt-3 text-sm font-semibold text-ivory">Keep your reports ready</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-mauve">If you have a relevant report or referral, you can upload it before your visit. This step is optional.</p>
+                    <Link to={nextAppointment?.mode === 'ONLINE' && consultationPath ? `${consultationPath}#consultation-files` : '/dashboard?section=records'}
+                      className="mt-3 inline-block text-xs font-semibold text-lavender hover:text-rose">
+                      {nextAppointment?.mode === 'ONLINE' ? 'Upload a report' : 'Records & prescriptions'}
+                    </Link>
+                  </li>
+                  <li className="rounded-xl border border-white/[0.08] p-4">
+                    {nextAppointment?.mode === 'ONLINE' ? (
+                      <>
+                        <Video className="h-4 w-4 text-lavender" aria-hidden="true" />
+                        <h3 className="mt-3 text-sm font-semibold text-ivory">Join your video consultation</h3>
+                        <p className="mt-1 text-xs leading-relaxed text-mauve">
+                          {nextAppointment.canJoin ? 'Your video room is open.' : 'The join button appears when your video room opens.'}
+                        </p>
+                        {nextAppointment.canJoin && consultationPath && (
+                          <ButtonLink to={consultationPath} size="sm" className="mt-3">Join video</ButtonLink>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="h-4 w-4 text-lavender" aria-hidden="true" />
+                        <h3 className="mt-3 text-sm font-semibold text-ivory">{nextAppointment ? 'Review payment' : 'Check consultation fees'}</h3>
+                        <p className="mt-1 text-xs leading-relaxed text-mauve">
+                          {nextAppointment ? 'Check your payment status and available receipts.' : 'Review consultation prices and cancellation details before booking.'}
+                        </p>
+                        <Link to={nextAppointment ? '/dashboard?section=payments' : '/pricing'} className="mt-3 inline-block text-xs font-semibold text-lavender hover:text-rose">
+                          {nextAppointment ? 'View payments' : 'View pricing'}
+                        </Link>
+                      </>
+                    )}
+                  </li>
+                </ul>
+              </section>
+            )}
           </div>
         ) : section === 'appointments' ? (
           <div className="space-y-4">
@@ -1232,8 +1176,18 @@ export default function PatientDashboard() {
                 Clinician-issued records only. All content is clearly labelled demo data.
               </p>
               <div className="mt-4 space-y-2.5">
-                {prescriptions.length ? (
-                  prescriptions.map((prescription) => (
+                {prescriptionFiles.map((file) => (
+                  <div key={file.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/[0.07] p-4">
+                    <div className="min-w-0">
+                      <p className="break-words text-xs text-ivory">{file.fileName}</p>
+                      <p className="mt-1 text-xs text-mauve">
+                        {[file.doctorName, formatDate(file.createdAt), file.bookingId].filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                    <DocumentDownload endpoint={`/patient/documents/${encodeURIComponent(file.id)}/download`} fileName={file.fileName} />
+                  </div>
+                ))}
+                {prescriptions.map((prescription) => (
                     <div key={prescription.id} className="rounded-xl border border-white/[0.07] p-4">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
@@ -1263,8 +1217,8 @@ export default function PatientDashboard() {
                         {prescription.disclaimer}
                       </p>
                     </div>
-                  ))
-                ) : (
+                ))}
+                {!prescriptions.length && !prescriptionFiles.length && (
                   <EmptyState
                     className="py-8"
                     icon={<FileText className="h-5 w-5" />}

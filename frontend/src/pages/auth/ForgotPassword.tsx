@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Seo } from '@/components/Seo';
 
 export default function ForgotPassword() {
+  const [params] = useSearchParams();
+  const clinician = params.get('portal') === 'doctor';
+  const signIn = clinician ? '/doctor/login' : '/login';
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,14 +50,14 @@ export default function ForgotPassword() {
               If an account exists for that address, a reset link has been sent. For security, we do
               not confirm whether an account exists.
             </p>
-            <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.025] p-4">
+            {!clinician && <div className="mt-4 rounded-xl border border-white/[0.08] bg-white/[0.025] p-4">
               <p className="font-body text-[10px] leading-relaxed text-mauve">
                 <strong className="text-ivory">Local demo without SMTP:</strong> the reset link is
                 printed in the API terminal. Email delivery requires the SMTP environment variables.
               </p>
-            </div>
+            </div>}
             <Link
-              to="/login"
+              to={signIn}
               className="mt-6 inline-flex items-center gap-2 font-sans text-[11px] font-semibold text-lavender hover:text-rose"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
@@ -87,7 +90,7 @@ export default function ForgotPassword() {
               Send reset link
             </Button>
             <Link
-              to="/login"
+              to={signIn}
               className="flex items-center justify-center gap-2 font-sans text-[10px] text-mauve hover:text-ivory"
             >
               <ArrowLeft className="h-3 w-3" /> Back to sign in

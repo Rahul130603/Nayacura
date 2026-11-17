@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { withinJoinWindow } from './slots';
 import { decryptText } from '../utils/crypto';
+import { privateApplicationDocumentTypes } from './clinicianApplicationDocuments';
 
 export const doctorCardInclude = {
   user: { select: { name: true, email: true } },
@@ -12,7 +13,7 @@ export const doctorCardInclude = {
 
 export const doctorDetailInclude = {
   ...doctorCardInclude,
-  credentials: true,
+  credentials: { where: { type: { notIn: privateApplicationDocumentTypes } } },
   clinics: { include: { clinic: true } },
   availabilities: { where: { active: true }, orderBy: [{ weekday: 'asc' }, { startMinute: 'asc' }] },
   reviews: {
