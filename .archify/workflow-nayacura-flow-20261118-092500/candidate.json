@@ -1,0 +1,619 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Nayacura Patient Journey & Care Workflow",
+    "subtitle": "End-to-end appointment scheduling, conflict-protected slot hold, payment verification, and encrypted care",
+    "locale": "en",
+    "output": ".archify/workflow-nayacura-flow-20261118-092500/nayacura-flow.html",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Rahul130603/Nayacura.git",
+      "revision": "181c624bb9aff76741e55d3349600cc66f7db184",
+      "provider": "github"
+    }
+  },
+  "lanes": [
+    {
+      "id": "patient",
+      "label": "Patient Client (React 19 SPA)"
+    },
+    {
+      "id": "gateway",
+      "label": "API Gateway & Security (Express 5)"
+    },
+    {
+      "id": "services",
+      "label": "Domain & Validation Engine"
+    },
+    {
+      "id": "datastore",
+      "label": "Database & Encrypted Vault (Prisma)"
+    },
+    {
+      "id": "integrations",
+      "label": "External Gateways & SFU"
+    }
+  ],
+  "phases": [
+    {
+      "id": "discovery",
+      "label": "1. Discovery & Selection",
+      "fromCol": 0,
+      "toCol": 0,
+      "variant": "default"
+    },
+    {
+      "id": "intake",
+      "label": "2. Slot Lock & Schedule",
+      "fromCol": 1,
+      "toCol": 1,
+      "variant": "default"
+    },
+    {
+      "id": "validation",
+      "label": "3. Conflict & Hold Gate",
+      "fromCol": 2,
+      "toCol": 2,
+      "variant": "security"
+    },
+    {
+      "id": "payment",
+      "label": "4. Payment & Order Capture",
+      "fromCol": 3,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "consultation",
+      "label": "5. Telehealth Video Room",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "default"
+    },
+    {
+      "id": "records",
+      "label": "6. Encrypted Care Vault",
+      "fromCol": 5,
+      "toCol": 5,
+      "variant": "security"
+    }
+  ],
+  "mainPath": [
+    "ui_browse",
+    "ui_booking",
+    "api_create",
+    "api_payment",
+    "api_consult",
+    "api_notes",
+    "svc_crypto",
+    "db_vault"
+  ],
+  "nodes": [
+    {
+      "id": "ui_browse",
+      "lane": "patient",
+      "col": 0,
+      "type": "frontend",
+      "label": "Specialist Directory",
+      "sublabel": "Filter doctors",
+      "tag": "React 19",
+      "sources": [
+        {
+          "path": "frontend/src/pages/Doctors.tsx",
+          "line": 1,
+          "end_line": 50
+        }
+      ]
+    },
+    {
+      "id": "api_doctors",
+      "lane": "gateway",
+      "col": 0,
+      "type": "backend",
+      "label": "Doctors API Router",
+      "sublabel": "GET /api/doctors",
+      "sources": [
+        {
+          "path": "backend/src/routes/doctors.ts",
+          "line": 17,
+          "end_line": 60
+        }
+      ]
+    },
+    {
+      "id": "db_directory",
+      "lane": "datastore",
+      "col": 0,
+      "type": "database",
+      "label": "Doctor Profile DB",
+      "sublabel": "Doctor schedules",
+      "sources": [
+        {
+          "path": "backend/prisma/schema.prisma",
+          "line": 70,
+          "end_line": 115
+        }
+      ]
+    },
+    {
+      "id": "ui_booking",
+      "lane": "patient",
+      "col": 1,
+      "type": "frontend",
+      "label": "Booking Wizard",
+      "sublabel": "6-step intake",
+      "tag": "Zod",
+      "sources": [
+        {
+          "path": "frontend/src/pages/Booking.tsx",
+          "line": 36,
+          "end_line": 65
+        }
+      ]
+    },
+    {
+      "id": "api_slots",
+      "lane": "gateway",
+      "col": 1,
+      "type": "backend",
+      "label": "Slots Endpoint",
+      "sublabel": "GET /doctors/slots",
+      "sources": [
+        {
+          "path": "backend/src/routes/doctors.ts",
+          "line": 154,
+          "end_line": 179
+        }
+      ]
+    },
+    {
+      "id": "svc_slots",
+      "lane": "services",
+      "col": 1,
+      "type": "backend",
+      "label": "Timezone Slot Engine",
+      "sublabel": "15m hold math",
+      "tag": "Luxon",
+      "sources": [
+        {
+          "path": "backend/src/services/slots.ts",
+          "line": 45,
+          "end_line": 95
+        }
+      ]
+    },
+    {
+      "id": "api_create",
+      "lane": "gateway",
+      "col": 2,
+      "type": "security",
+      "label": "Booking Intake Guard",
+      "sublabel": "POST /appointments",
+      "tag": "CSRF",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 151,
+          "end_line": 185
+        }
+      ]
+    },
+    {
+      "id": "svc_conflict",
+      "lane": "services",
+      "col": 2,
+      "type": "backend",
+      "label": "Conflict Validator",
+      "sublabel": "Slot collision",
+      "tag": "Atomic",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 216,
+          "end_line": 245
+        }
+      ]
+    },
+    {
+      "id": "db_pending",
+      "lane": "datastore",
+      "col": 2,
+      "type": "database",
+      "label": "Pending Hold Store",
+      "sublabel": "Hold state",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 231,
+          "end_line": 255
+        }
+      ]
+    },
+    {
+      "id": "ui_payment",
+      "lane": "patient",
+      "col": 3,
+      "type": "frontend",
+      "label": "Payment Modal",
+      "sublabel": "Checkout modal",
+      "tag": "Razorpay",
+      "sources": [
+        {
+          "path": "frontend/src/pages/Booking.tsx",
+          "line": 650,
+          "end_line": 695
+        }
+      ]
+    },
+    {
+      "id": "api_payment",
+      "lane": "gateway",
+      "col": 3,
+      "type": "backend",
+      "label": "Payment Router",
+      "sublabel": "POST /verify-pay",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 361,
+          "end_line": 410
+        }
+      ]
+    },
+    {
+      "id": "svc_payment_verify",
+      "lane": "services",
+      "col": 3,
+      "type": "security",
+      "label": "Signature Verifier",
+      "sublabel": "HMAC check",
+      "tag": "HMAC",
+      "sources": [
+        {
+          "path": "backend/src/services/payments.ts",
+          "line": 59,
+          "end_line": 73
+        }
+      ]
+    },
+    {
+      "id": "db_confirmed",
+      "lane": "datastore",
+      "col": 3,
+      "type": "database",
+      "label": "Confirmed Booking DB",
+      "sublabel": "Confirmed state",
+      "tag": "Audit",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 410,
+          "end_line": 445
+        }
+      ]
+    },
+    {
+      "id": "ext_razorpay",
+      "lane": "integrations",
+      "col": 3,
+      "type": "cloud",
+      "label": "Razorpay Gateway",
+      "sublabel": "Payment capture",
+      "tag": "Capture",
+      "sources": [
+        {
+          "path": "backend/src/services/payments.ts",
+          "line": 27,
+          "end_line": 57
+        }
+      ]
+    },
+    {
+      "id": "ui_consult",
+      "lane": "patient",
+      "col": 4,
+      "type": "frontend",
+      "label": "Consultation Room",
+      "sublabel": "WebRTC room",
+      "tag": "LiveKit",
+      "sources": [
+        {
+          "path": "frontend/src/pages/ConsultationRoom.tsx",
+          "line": 1,
+          "end_line": 45
+        }
+      ]
+    },
+    {
+      "id": "api_consult",
+      "lane": "gateway",
+      "col": 4,
+      "type": "backend",
+      "label": "Room Join API",
+      "sublabel": "POST /join-room",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 737,
+          "end_line": 770
+        }
+      ]
+    },
+    {
+      "id": "ext_livekit",
+      "lane": "integrations",
+      "col": 4,
+      "type": "cloud",
+      "label": "LiveKit Server",
+      "sublabel": "LiveKit SFU",
+      "tag": "WebRTC",
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 745,
+          "end_line": 775
+        }
+      ]
+    },
+    {
+      "id": "api_notes",
+      "lane": "gateway",
+      "col": 5,
+      "type": "backend",
+      "label": "Clinical Notes API",
+      "sublabel": "POST /doctor/notes",
+      "sources": [
+        {
+          "path": "backend/src/routes/doctor.ts",
+          "line": 448,
+          "end_line": 485
+        }
+      ]
+    },
+    {
+      "id": "svc_crypto",
+      "lane": "services",
+      "col": 5,
+      "type": "security",
+      "label": "Clinical Encryptor",
+      "sublabel": "AES-256 cipher",
+      "tag": "AES-256",
+      "sources": [
+        {
+          "path": "backend/src/utils/crypto.ts",
+          "line": 29,
+          "end_line": 49
+        }
+      ]
+    },
+    {
+      "id": "db_vault",
+      "lane": "datastore",
+      "col": 5,
+      "type": "database",
+      "label": "Encrypted Vault",
+      "sublabel": "Encrypted notes",
+      "tag": "Vault",
+      "sources": [
+        {
+          "path": "backend/src/routes/doctor.ts",
+          "line": 448,
+          "end_line": 485
+        }
+      ]
+    },
+    {
+      "id": "ext_mailer",
+      "lane": "integrations",
+      "col": 5,
+      "type": "cloud",
+      "label": "Mailer Service",
+      "sublabel": "Booking receipt",
+      "tag": "SMTP",
+      "sources": [
+        {
+          "path": "backend/src/services/mailer.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "step_browse_to_booking",
+      "from": "ui_browse",
+      "to": "ui_booking",
+      "label": "select doctor",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "step_booking_to_create",
+      "from": "ui_booking",
+      "to": "api_create",
+      "label": "submit intake",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "step_create_to_payment",
+      "from": "api_create",
+      "to": "api_payment",
+      "label": "lock slot",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "step_payment_to_consult",
+      "from": "api_payment",
+      "to": "api_consult",
+      "label": "verify pay",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "step_consult_to_notes",
+      "from": "api_consult",
+      "to": "api_notes",
+      "label": "enter room",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "step_notes_to_crypto",
+      "from": "api_notes",
+      "to": "svc_crypto",
+      "label": "write notes",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "step_crypto_to_vault",
+      "from": "svc_crypto",
+      "to": "db_vault",
+      "label": "store vault",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "branch_browse_api",
+      "from": "ui_browse",
+      "to": "api_doctors",
+      "label": "fetch doctors",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_api_directory",
+      "from": "api_doctors",
+      "to": "db_directory",
+      "label": "read profiles",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_booking_slots",
+      "from": "ui_booking",
+      "to": "api_slots",
+      "label": "query slots",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_api_svc_slots",
+      "from": "api_slots",
+      "to": "svc_slots",
+      "label": "calculate windows",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_create_conflict",
+      "from": "api_create",
+      "to": "svc_conflict",
+      "label": "validate conflict",
+      "variant": "security",
+      "role": "branch"
+    },
+    {
+      "id": "branch_conflict_pending",
+      "from": "svc_conflict",
+      "to": "db_pending",
+      "label": "atomic 15m hold",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_payment_ui",
+      "from": "api_payment",
+      "to": "ui_payment",
+      "label": "open checkout",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_payment_verify",
+      "from": "api_payment",
+      "to": "svc_payment_verify",
+      "label": "verify HMAC",
+      "variant": "security",
+      "role": "branch"
+    },
+    {
+      "id": "branch_verify_confirmed",
+      "from": "svc_payment_verify",
+      "to": "db_confirmed",
+      "label": "mark confirmed",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_verify_razorpay",
+      "from": "svc_payment_verify",
+      "to": "ext_razorpay",
+      "label": "check provider",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_consult_ui",
+      "from": "api_consult",
+      "to": "ui_consult",
+      "label": "render room",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_consult_livekit",
+      "from": "api_consult",
+      "to": "ext_livekit",
+      "label": "mint token",
+      "variant": "default",
+      "role": "branch"
+    },
+    {
+      "id": "branch_notes_mailer",
+      "from": "api_notes",
+      "to": "ext_mailer",
+      "label": "notify patient",
+      "variant": "dashed",
+      "role": "async"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Patient Consultation Lifecycle",
+      "items": [
+        "1. Browse & filter specialists by specialization, language, city, and format.",
+        "2. Select appointment format (online video or in-person) and timezone-aware slot.",
+        "3. Automated 15-minute hold with atomic double-booking conflict prevention in Prisma transaction.",
+        "4. Dual payment options: production Razorpay order capture with HMAC-SHA256 signature check, or offline demo adapter."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Zero-Trust Security & Privacy",
+      "items": [
+        "CSRF token and HTTP-only cookie session authentication on all appointment mutating endpoints.",
+        "Double-booking protection releases expired holds before checking slot collision in an atomic Prisma transaction.",
+        "Timing-safe signature verification prevents timing attack vulnerabilities during payment validation.",
+        "Transactional emails deliberately omit sensitive consultation reasons, diagnoses, and patient medical notes."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Confidential Telehealth & Vault",
+      "items": [
+        "LiveKit video consultation room with short-lived JWT join tokens issued only within the join window.",
+        "Private audio/video tracks streamed peer-to-peer via SFU with end-to-end room isolation.",
+        "Post-consultation clinical notes and prescriptions encrypted at the application layer with AES-256-GCM.",
+        "Each encrypted record uses random 12-byte IV, scrypt-derived key, and authentication tag for tamper resistance."
+      ]
+    }
+  ]
+}

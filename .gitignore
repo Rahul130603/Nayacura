@@ -15,3 +15,5 @@ qa-artifacts/
 .tmp/
 naya-source-*.candidate.json
 backend/.piper/
+pip-metadata-*/
+pip-unpack-*/

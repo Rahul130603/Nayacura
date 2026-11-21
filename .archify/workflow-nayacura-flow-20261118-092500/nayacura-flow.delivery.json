@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "94c8e4ca-f7a8-4df0-84e2-90792a38ac2a",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "d:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\candidate.json",
+  "output": "D:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\nayacura-flow.html",
+  "specification": {
+    "sha256": "1d117ea03da2c748b24c43b62f2c7d3b60ee19d8fc5ef7f5519f641131a58662",
+    "bytes": 14781
+  },
+  "artifact": {
+    "sha256": "de8015b524eab9e14a0b69a1952e84c6f6a20a08f38523e92d765bdd3b534691",
+    "bytes": 884655
+  }
+}

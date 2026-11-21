@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\candidate.json",
+    "sha256": "4e778a50d9ab289afe5a0d9851fb874e4f5bfda7a52c69ab1eb6675d1e9618f4",
+    "bytes": 5559
+  },
+  "artifact": {
+    "path": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\nayacura-voice.html",
+    "sha256": "c097cc0552967827df34432c595cd69b87c95b51cf29b5ebd926ddace9a1f8db",
+    "bytes": 843257
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\nayacura-voice.finalize.json",
+    "summaryReceipt": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\nayacura-voice.finalize-summary.json",
+    "browserCheckReceipt": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\nayacura-voice.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-17T12:03:19.898Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4518,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

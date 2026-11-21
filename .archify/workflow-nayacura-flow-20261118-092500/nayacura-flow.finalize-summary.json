@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "workflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "d:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\candidate.json",
+    "sha256": "1d117ea03da2c748b24c43b62f2c7d3b60ee19d8fc5ef7f5519f641131a58662",
+    "bytes": 14781
+  },
+  "artifact": {
+    "path": "d:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\nayacura-flow.html",
+    "sha256": "de8015b524eab9e14a0b69a1952e84c6f6a20a08f38523e92d765bdd3b534691",
+    "bytes": 884655
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\nayacura-flow.finalize.json",
+    "summaryReceipt": "D:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\nayacura-flow.finalize-summary.json",
+    "browserCheckReceipt": "d:\\naya\\.archify\\workflow-nayacura-flow-20261118-092500\\nayacura-flow.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-17T12:03:19.898Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4488,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

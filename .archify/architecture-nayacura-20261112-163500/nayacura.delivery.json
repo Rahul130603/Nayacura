@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "4b030dd1-ef2b-42f3-8dc9-523f8f0cbbab",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\candidate.json",
+  "output": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\nayacura.html",
+  "specification": {
+    "sha256": "1859925ef3a0c7a23649c107ed39e7b2ff451098a1821be4000c2a64972868bb",
+    "bytes": 10286
+  },
+  "artifact": {
+    "sha256": "ee4c2faa5ff2621576462b957cd3af144f8778133dbcfe2d67a8fa1a6ee31c91",
+    "bytes": 852945
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "8531c34f-1f92-4a65-ad07-3231ad3163e9",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\candidate.json",
+  "output": "D:\\naya\\.archify\\architecture-naya-voice-20261117-130000\\nayacura-voice.html",
+  "specification": {
+    "sha256": "4e778a50d9ab289afe5a0d9851fb874e4f5bfda7a52c69ab1eb6675d1e9618f4",
+    "bytes": 5559
+  },
+  "artifact": {
+    "sha256": "c097cc0552967827df34432c595cd69b87c95b51cf29b5ebd926ddace9a1f8db",
+    "bytes": 843257
+  }
+}

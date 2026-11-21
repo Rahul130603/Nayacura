@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Nayacura software architecture",
+    "locale": "en",
+    "output": ".archify/architecture-nayacura-20261112-163500/nayacura.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Rahul130603/Nayacura.git",
+      "revision": "ba846b98a67cac04609a3b859eeb472ef80ec79d",
+      "provider": "github"
+    }
+  },
+  "components": [
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "React application",
+      "sublabel": "Public pages and role portals",
+      "pos": [
+        40,
+        195
+      ],
+      "size": [
+        170,
+        70
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/main.tsx",
+          "line": 11,
+          "end_line": 32
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "line": 39,
+          "end_line": 94
+        },
+        {
+          "path": "frontend/src/lib/api.ts",
+          "line": 25,
+          "end_line": 108
+        }
+      ]
+    },
+    {
+      "id": "http",
+      "type": "backend",
+      "label": "Express server",
+      "sublabel": "Static SPA, API and health",
+      "pos": [
+        315,
+        195
+      ],
+      "size": [
+        165,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/index.ts",
+          "line": 1,
+          "end_line": 19
+        },
+        {
+          "path": "backend/src/app.ts",
+          "line": 26,
+          "end_line": 74
+        },
+        {
+          "path": "backend/src/app.ts",
+          "line": 76,
+          "end_line": 123
+        }
+      ]
+    },
+    {
+      "id": "routes",
+      "type": "backend",
+      "label": "API route modules",
+      "sublabel": "Public, patient, doctor, admin",
+      "pos": [
+        598,
+        195
+      ],
+      "size": [
+        180,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/app.ts",
+          "line": 97,
+          "end_line": 105
+        },
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 86,
+          "end_line": 124
+        },
+        {
+          "path": "backend/src/routes/doctor.ts",
+          "line": 252,
+          "end_line": 316
+        }
+      ]
+    },
+    {
+      "id": "prisma",
+      "type": "backend",
+      "label": "Prisma Client",
+      "sublabel": "Queries and transactions",
+      "pos": [
+        878,
+        195
+      ],
+      "size": [
+        150,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/config/prisma.ts",
+          "line": 1,
+          "end_line": 10
+        },
+        {
+          "path": "backend/prisma/generate-client.cjs",
+          "line": 7,
+          "end_line": 19
+        }
+      ]
+    },
+    {
+      "id": "database",
+      "type": "database",
+      "label": "SQL database",
+      "sublabel": "SQLite or PostgreSQL",
+      "pos": [
+        1114,
+        195
+      ],
+      "size": [
+        145,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/prisma/schema.prisma",
+          "line": 1,
+          "end_line": 12
+        },
+        {
+          "path": "backend/prisma/schema.postgresql.prisma",
+          "line": 7,
+          "end_line": 12
+        },
+        {
+          "path": "backend/prisma/schema.postgresql.prisma",
+          "line": 240,
+          "end_line": 340
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "type": "security",
+      "label": "Request controls",
+      "sublabel": "CSRF, sessions and role checks",
+      "pos": [
+        307,
+        40
+      ],
+      "size": [
+        181,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/app.ts",
+          "line": 35,
+          "end_line": 74
+        },
+        {
+          "path": "backend/src/middleware/auth.ts",
+          "line": 1,
+          "end_line": 30
+        },
+        {
+          "path": "backend/src/middleware/csrf.ts",
+          "line": 1,
+          "end_line": 30
+        }
+      ]
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "Domain services",
+      "sublabel": "Sessions, slots and serializers",
+      "pos": [
+        598,
+        40
+      ],
+      "size": [
+        180,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/services/authService.ts",
+          "line": 7,
+          "end_line": 47
+        },
+        {
+          "path": "backend/src/services/slots.ts",
+          "line": 45,
+          "end_line": 97
+        },
+        {
+          "path": "backend/src/services/serializers.ts",
+          "line": 201,
+          "end_line": 245
+        }
+      ]
+    },
+    {
+      "id": "integrations",
+      "type": "cloud",
+      "label": "External integrations",
+      "sublabel": "LiveKit, Razorpay, LLM, SMTP",
+      "pos": [
+        598,
+        357
+      ],
+      "size": [
+        180,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/appointments.ts",
+          "line": 732,
+          "end_line": 816
+        },
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 171,
+          "end_line": 195
+        },
+        {
+          "path": "backend/src/config/env.ts",
+          "line": 92,
+          "end_line": 100
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "Local document storage",
+      "sublabel": "Upload bytes on server disk",
+      "pos": [
+        878,
+        357
+      ],
+      "size": [
+        150,
+        70
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/patient.ts",
+          "line": 218,
+          "end_line": 256
+        },
+        {
+          "path": "backend/src/routes/patient.ts",
+          "line": 283,
+          "end_line": 309
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "web-to-http",
+      "from": "web",
+      "to": "http",
+      "label": "HTTPS / JSON",
+      "variant": "emphasis"
+    },
+    {
+      "id": "http-to-routes",
+      "from": "http",
+      "to": "routes",
+      "label": "Mount routers",
+      "variant": "emphasis"
+    },
+    {
+      "id": "routes-to-prisma",
+      "from": "routes",
+      "to": "prisma",
+      "label": "Read / write",
+      "variant": "emphasis"
+    },
+    {
+      "id": "prisma-to-database",
+      "from": "prisma",
+      "to": "database",
+      "label": "SQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "http-to-access",
+      "from": "http",
+      "to": "access",
+      "label": "Check requests",
+      "variant": "security"
+    },
+    {
+      "id": "routes-to-domain",
+      "from": "routes",
+      "to": "domain",
+      "label": "Call helpers",
+      "variant": "default"
+    },
+    {
+      "id": "routes-to-integrations",
+      "from": "routes",
+      "to": "integrations",
+      "label": "If configured",
+      "variant": "default"
+    },
+    {
+      "id": "routes-to-files",
+      "from": "routes",
+      "to": "files",
+      "label": "Store / read files",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Frontend modules",
+      "items": [
+        "React Router splits public pages, booking, consultation and three protected dashboards. AuthContext and LoginPortal share the API client; TanStack Query caches data.",
+        "Booking and DoctorProfile fetch clinician slots. ConsultationRoom uses LiveKit Client for media once the backend issues a room token. Ask Naya consumes streamed replies."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Public and account API",
+      "items": [
+        "/api/auth — registration, login, current user, sessions, email verification and password reset.",
+        "/api/doctors — directory, filters, profiles and availability. /api/services, /api/plans, /api/articles and /api/config/public — public content and configuration.",
+        "/api/health — checks database connectivity and reports configured integrations."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Booking and role APIs",
+      "items": [
+        "/api/appointments — slot holds, payment orders and verification, rescheduling, cancellation, consent, video tokens and reviews.",
+        "/api/patient — appointments, documents, prescriptions, payments, profile and notifications. /api/doctor — schedule, availability, clinical notes, prescriptions and earnings.",
+        "/api/admin — clinician verification, user and appointment oversight, refunds, tickets, content, reviews, audit and settings."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Chat and support APIs",
+      "items": [
+        "/api/ai/chat streams replies via SSE; /api/ai/conversations manages saved conversations. English, Tamil and Tanglish are supported. Storage requires account and consent.",
+        "/api/support/tickets handles contact, ticket history and replies. Admin ticket routes support assignment and responses."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Module dependencies and persistence",
+      "items": [
+        "Route handlers call Prisma directly and delegate slot rules, cookie sessions, payment handling, email and serialization to backend services. Validation and authorization guard mutations.",
+        "SQL models cover identity, profiles and availability, appointments and status history, payments, clinical records, content, chat, support, consent and audit. Medical document metadata lives in SQL and upload bytes live on disk.",
+        "Build selects the Prisma schema from DATABASE_URL. In development Vite proxies /api to Express; production Express serves the built frontend and handles SPA routes."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Provider behavior",
+      "items": [
+        "LiveKit uses scoped room tokens after appointment access and consent checks. Without configuration the room offers a local media preview.",
+        "payments.ts creates Razorpay orders and verifies payment details; demo payments are simulated. ai.ts uses a configured chat completion provider or fallback replies.",
+        "mailer.ts uses configured SMTP for account, booking and support messages. Source references are pinned to the Git commit; provider activation varies by deployment."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Nayacura Voice Mode architecture",
+    "locale": "en",
+    "output": ".archify/architecture-naya-voice-20261117-130000/nayacura-voice.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Rahul130603/Nayacura.git",
+      "revision": "181c624bb9aff76741e55d3349600cc66f7db184",
+      "provider": "github"
+    }
+  },
+  "components": [
+    {
+      "id": "recognition",
+      "type": "frontend",
+      "label": "Speech recognition",
+      "sublabel": "Browser mic and interim text",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/components/ai/NayaVoiceMode.tsx",
+          "line": 196,
+          "end_line": 254
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "type": "frontend",
+      "label": "Naya Voice Mode",
+      "sublabel": "Transcript, turn control, captions",
+      "pos": [
+        420,
+        120
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/components/ai/NayaVoiceMode.tsx",
+          "line": 65,
+          "end_line": 101
+        },
+        {
+          "path": "frontend/src/components/ai/NayaVoiceMode.tsx",
+          "line": 104,
+          "end_line": 187
+        },
+        {
+          "path": "frontend/src/pages/AI.tsx",
+          "line": 254,
+          "end_line": 273
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "type": "backend",
+      "label": "Chat API",
+      "sublabel": "Reply selection and SSE stream",
+      "pos": [
+        820,
+        120
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 296,
+          "end_line": 328
+        },
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 404,
+          "end_line": 430
+        }
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "external",
+      "label": "Configured model",
+      "sublabel": "OpenAI-compatible provider",
+      "pos": [
+        1220,
+        120
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 229,
+          "end_line": 254
+        }
+      ]
+    },
+    {
+      "id": "device-audio",
+      "type": "frontend",
+      "label": "Browser voice",
+      "sublabel": "Speaks one caption at a time",
+      "pos": [
+        40,
+        350
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "frontend/src/lib/voice.ts",
+          "line": 111,
+          "end_line": 157
+        }
+      ]
+    },
+    {
+      "id": "piper",
+      "type": "backend",
+      "label": "Piper voice fallback",
+      "sublabel": "English or Tamil WAV audio",
+      "pos": [
+        420,
+        350
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 19,
+          "end_line": 48
+        },
+        {
+          "path": "backend/src/services/piperSpeech.ts",
+          "line": 8,
+          "end_line": 49
+        }
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "database",
+      "label": "Chat history",
+      "sublabel": "Signed-in users with consent",
+      "pos": [
+        820,
+        350
+      ],
+      "size": [
+        206,
+        72
+      ],
+      "sources": [
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 319,
+          "end_line": 377
+        },
+        {
+          "path": "backend/src/routes/ai.ts",
+          "line": 431,
+          "end_line": 450
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "mic-transcript",
+      "from": "recognition",
+      "to": "voice",
+      "label": "Interim and final text",
+      "variant": "emphasis"
+    },
+    {
+      "id": "send-turn",
+      "from": "voice",
+      "to": "chat",
+      "label": "POST text / SSE reply",
+      "variant": "emphasis"
+    },
+    {
+      "id": "model-reply",
+      "from": "chat",
+      "to": "llm",
+      "label": "Completion if configured"
+    },
+    {
+      "id": "device-playback",
+      "from": "voice",
+      "to": "device-audio",
+      "label": "Try device voice"
+    },
+    {
+      "id": "server-playback",
+      "from": "voice",
+      "to": "piper",
+      "label": "On playback failure"
+    },
+    {
+      "id": "save-history",
+      "from": "chat",
+      "to": "storage",
+      "label": "Encrypted chat messages"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Voice turn",
+      "items": [
+        "The browser shows interim recognition results while the user speaks. After a pause, the latest transcript becomes a chat turn.",
+        "Naya resumes listening after playback finishes."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Captions",
+      "items": [
+        "Device speech advances captions at the start of each spoken segment.",
+        "Piper returns one WAV. The browser estimates caption timing from audio progress and caption length."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Fallbacks",
+      "items": [
+        "Without a configured model, the API uses built-in replies. Safety and medicine referrals can also bypass the model.",
+        "Piper fallback is available for English and Tamil when the corresponding model is installed on the server."
+      ]
+    }
+  ]
+}

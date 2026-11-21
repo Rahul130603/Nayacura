@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\candidate.json",
+    "sha256": "1859925ef3a0c7a23649c107ed39e7b2ff451098a1821be4000c2a64972868bb",
+    "bytes": 10286
+  },
+  "artifact": {
+    "path": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\nayacura.html",
+    "sha256": "ee4c2faa5ff2621576462b957cd3af144f8778133dbcfe2d67a8fa1a6ee31c91",
+    "bytes": 852945
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\nayacura.finalize.json",
+    "summaryReceipt": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\nayacura.finalize-summary.json",
+    "browserCheckReceipt": "D:\\naya\\.archify\\architecture-nayacura-20261112-163500\\nayacura.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-12T11:23:11.161Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4328,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}
